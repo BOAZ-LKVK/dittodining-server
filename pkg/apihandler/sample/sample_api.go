@@ -5,16 +5,19 @@ import (
 	"github.com/BOAZ-LKVK/LKVK-server/pkg/apihandler"
 	"github.com/BOAZ-LKVK/LKVK-server/pkg/customerrors"
 	"github.com/BOAZ-LKVK/LKVK-server/pkg/domain/sample"
-	"github.com/BOAZ-LKVK/LKVK-server/pkg/repository"
+	sample_repository "github.com/BOAZ-LKVK/LKVK-server/pkg/repository/sample"
 	"github.com/BOAZ-LKVK/LKVK-server/pkg/validate"
 	"github.com/gofiber/fiber/v2"
 )
 
+// SampleAPIHandler implements apihandler.APIController
+var _ apihandler.APIController = (*SampleAPIHandler)(nil)
+
 type SampleAPIHandler struct {
-	sampleRepository repository.SampleRepository
+	sampleRepository sample_repository.SampleRepository
 }
 
-func NewSampleAPIHandler(sampleRepository repository.SampleRepository) *SampleAPIHandler {
+func NewSampleAPIHandler(sampleRepository sample_repository.SampleRepository) *SampleAPIHandler {
 	return &SampleAPIHandler{sampleRepository: sampleRepository}
 }
 
@@ -24,32 +27,11 @@ func (h *SampleAPIHandler) Pattern() string {
 
 func (h *SampleAPIHandler) Handlers() []*apihandler.APIHandler {
 	return []*apihandler.APIHandler{
-		// 가독성 좋게 함수형태로 변경
-		{
-			Pattern: "",
-			Method:  fiber.MethodGet,
-			Handler: h.listSamples(),
-		},
-		{
-			Pattern: "/:id",
-			Method:  fiber.MethodGet,
-			Handler: h.getSample(),
-		},
-		{
-			Pattern: "",
-			Method:  fiber.MethodPost,
-			Handler: h.createSample(),
-		},
-		{
-			Pattern: "/:id",
-			Method:  fiber.MethodPut,
-			Handler: h.updateSample(),
-		},
-		{
-			Pattern: "/:id",
-			Method:  fiber.MethodDelete,
-			Handler: h.deleteSample(),
-		},
+		apihandler.NewAPIHandler("", fiber.MethodGet, h.listSamples()),
+		apihandler.NewAPIHandler("/:id", fiber.MethodGet, h.getSample()),
+		apihandler.NewAPIHandler("", fiber.MethodPost, h.createSample()),
+		apihandler.NewAPIHandler("/:id", fiber.MethodPut, h.updateSample()),
+		apihandler.NewAPIHandler("/:id", fiber.MethodDelete, h.deleteSample()),
 	}
 }
 

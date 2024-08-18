@@ -1,4 +1,4 @@
-package repository
+package sample
 
 import (
 	"github.com/BOAZ-LKVK/LKVK-server/pkg/customerrors"

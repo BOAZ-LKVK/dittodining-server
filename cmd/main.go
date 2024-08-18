@@ -4,7 +4,7 @@ import (
 	"github.com/BOAZ-LKVK/LKVK-server/pkg/apihandler"
 	"github.com/BOAZ-LKVK/LKVK-server/pkg/apihandler/sample"
 	"github.com/BOAZ-LKVK/LKVK-server/pkg/errorhandler"
-	"github.com/BOAZ-LKVK/LKVK-server/pkg/repository"
+	sample_repository "github.com/BOAZ-LKVK/LKVK-server/pkg/repository/sample"
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
 	"log"
@@ -28,9 +28,9 @@ func main() {
 	})
 
 	apiHandler := app.Group("/api")
-	handlers := []apihandler.APIHandlerGroup{
+	handlers := []apihandler.APIController{
 		sample.NewSampleAPIHandler(
-			repository.NewSampleRepository(),
+			sample_repository.NewSampleRepository(),
 		),
 	}
 

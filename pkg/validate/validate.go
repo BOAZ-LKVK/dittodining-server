@@ -2,5 +2,5 @@ package validate
 
 import "github.com/go-playground/validator/v10"
 
-// Validator 인스턴스 생성
+// TODO: request validation middleware를 사용해서 로직 추상화하도록
 var Validator = validator.New()

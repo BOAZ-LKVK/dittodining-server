@@ -8,7 +8,8 @@ import (
 
 func NewFiberErrorHandler(logger *zap.Logger) func(ctx *fiber.Ctx, err error) error {
 	return func(ctx *fiber.Ctx, err error) error {
-		// Zap 로거를 사용하여 에러 로그 출력
+		// TODO: 공통 에러 핸들 로직 추가 with applicationError struct
+
 		logger.Error("Unhandled error occurred",
 			zap.String("method", ctx.Method()),
 			zap.String("url", ctx.OriginalURL()),
