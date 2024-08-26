@@ -1,4 +1,4 @@
-package apihandler
+package apicontroller
 
 import "github.com/gofiber/fiber/v2"
 

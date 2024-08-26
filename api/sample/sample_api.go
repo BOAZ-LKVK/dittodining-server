@@ -2,16 +2,16 @@ package sample
 
 import (
 	"errors"
-	"github.com/BOAZ-LKVK/LKVK-server/pkg/apihandler"
+	"github.com/BOAZ-LKVK/LKVK-server/pkg/apicontroller"
 	"github.com/BOAZ-LKVK/LKVK-server/pkg/customerrors"
 	"github.com/BOAZ-LKVK/LKVK-server/pkg/domain/sample"
-	sample_repository "github.com/BOAZ-LKVK/LKVK-server/pkg/repository/sample"
 	"github.com/BOAZ-LKVK/LKVK-server/pkg/validate"
+	sample_repository "github.com/BOAZ-LKVK/LKVK-server/repository/sample"
 	"github.com/gofiber/fiber/v2"
 )
 
-// SampleAPIHandler implements apihandler.APIController
-var _ apihandler.APIController = (*SampleAPIHandler)(nil)
+// SampleAPIHandler implements apicontroller.APIController
+var _ apicontroller.APIController = (*SampleAPIHandler)(nil)
 
 type SampleAPIHandler struct {
 	sampleRepository sample_repository.SampleRepository
@@ -25,13 +25,13 @@ func (h *SampleAPIHandler) Pattern() string {
 	return "/samples"
 }
 
-func (h *SampleAPIHandler) Handlers() []*apihandler.APIHandler {
-	return []*apihandler.APIHandler{
-		apihandler.NewAPIHandler("", fiber.MethodGet, h.listSamples()),
-		apihandler.NewAPIHandler("/:id", fiber.MethodGet, h.getSample()),
-		apihandler.NewAPIHandler("", fiber.MethodPost, h.createSample()),
-		apihandler.NewAPIHandler("/:id", fiber.MethodPut, h.updateSample()),
-		apihandler.NewAPIHandler("/:id", fiber.MethodDelete, h.deleteSample()),
+func (h *SampleAPIHandler) Handlers() []*apicontroller.APIHandler {
+	return []*apicontroller.APIHandler{
+		apicontroller.NewAPIHandler("", fiber.MethodGet, h.listSamples()),
+		apicontroller.NewAPIHandler("/:id", fiber.MethodGet, h.getSample()),
+		apicontroller.NewAPIHandler("", fiber.MethodPost, h.createSample()),
+		apicontroller.NewAPIHandler("/:id", fiber.MethodPut, h.updateSample()),
+		apicontroller.NewAPIHandler("/:id", fiber.MethodDelete, h.deleteSample()),
 	}
 }
 

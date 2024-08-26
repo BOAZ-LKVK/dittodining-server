@@ -1,4 +1,4 @@
-package apihandler
+package apicontroller
 
 type APIController interface {
 	Pattern() string
