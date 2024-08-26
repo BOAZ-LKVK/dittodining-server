@@ -1,6 +1,8 @@
 package sample
 
-import "github.com/BOAZ-LKVK/LKVK-server/pkg/domain/sample"
+import (
+	"github.com/BOAZ-LKVK/LKVK-server/domain/sample"
+)
 
 type CreateSampleResponse struct {
 	Sample *sample.Sample `json:"sample"`

@@ -1,8 +1,8 @@
 package sample
 
 import (
+	"github.com/BOAZ-LKVK/LKVK-server/domain/sample"
 	"github.com/BOAZ-LKVK/LKVK-server/pkg/customerrors"
-	"github.com/BOAZ-LKVK/LKVK-server/pkg/domain/sample"
 	"github.com/google/uuid"
 )
 

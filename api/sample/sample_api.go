@@ -2,9 +2,9 @@ package sample
 
 import (
 	"errors"
+	"github.com/BOAZ-LKVK/LKVK-server/domain/sample"
 	"github.com/BOAZ-LKVK/LKVK-server/pkg/apicontroller"
 	"github.com/BOAZ-LKVK/LKVK-server/pkg/customerrors"
-	"github.com/BOAZ-LKVK/LKVK-server/pkg/domain/sample"
 	"github.com/BOAZ-LKVK/LKVK-server/pkg/validate"
 	sample_repository "github.com/BOAZ-LKVK/LKVK-server/repository/sample"
 	"github.com/gofiber/fiber/v2"
