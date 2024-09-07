@@ -21,23 +21,23 @@ func NewSampleAPIHandler(sampleRepository sample_repository.SampleRepository) *S
 	return &SampleAPIController{sampleRepository: sampleRepository}
 }
 
-func (h *SampleAPIController) Pattern() string {
+func (c *SampleAPIController) Pattern() string {
 	return "/samples"
 }
 
-func (h *SampleAPIController) Handlers() []*apicontroller.APIHandler {
+func (c *SampleAPIController) Handlers() []*apicontroller.APIHandler {
 	return []*apicontroller.APIHandler{
-		apicontroller.NewAPIHandler("", fiber.MethodGet, h.listSamples()),
-		apicontroller.NewAPIHandler("/:id", fiber.MethodGet, h.getSample()),
-		apicontroller.NewAPIHandler("", fiber.MethodPost, h.createSample()),
-		apicontroller.NewAPIHandler("/:id", fiber.MethodPut, h.updateSample()),
-		apicontroller.NewAPIHandler("/:id", fiber.MethodDelete, h.deleteSample()),
+		apicontroller.NewAPIHandler("", fiber.MethodGet, c.listSamples()),
+		apicontroller.NewAPIHandler("/:id", fiber.MethodGet, c.getSample()),
+		apicontroller.NewAPIHandler("", fiber.MethodPost, c.createSample()),
+		apicontroller.NewAPIHandler("/:id", fiber.MethodPut, c.updateSample()),
+		apicontroller.NewAPIHandler("/:id", fiber.MethodDelete, c.deleteSample()),
 	}
 }
 
-func (h *SampleAPIController) listSamples() fiber.Handler {
+func (c *SampleAPIController) listSamples() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
-		samples, err := h.sampleRepository.FindAllSamples()
+		samples, err := c.sampleRepository.FindAllSamples()
 		if err != nil {
 			return ctx.Status(fiber.StatusInternalServerError).SendString(err.Error())
 		}
@@ -46,10 +46,10 @@ func (h *SampleAPIController) listSamples() fiber.Handler {
 	}
 }
 
-func (h *SampleAPIController) getSample() fiber.Handler {
+func (c *SampleAPIController) getSample() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		sampleID := ctx.Params("id")
-		sample, err := h.sampleRepository.FindOneSample(sampleID)
+		sample, err := c.sampleRepository.FindOneSample(sampleID)
 		if err != nil {
 			if errors.Is(err, customerrors.ErrorSampleNotFound) {
 				return ctx.Status(fiber.StatusNotFound).SendString(err.Error())
@@ -62,10 +62,10 @@ func (h *SampleAPIController) getSample() fiber.Handler {
 	}
 }
 
-func (h *SampleAPIController) deleteSample() fiber.Handler {
+func (c *SampleAPIController) deleteSample() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		sampleID := ctx.Params("id")
-		if err := h.sampleRepository.DeleteSample(sampleID); err != nil {
+		if err := c.sampleRepository.DeleteSample(sampleID); err != nil {
 			if errors.Is(err, customerrors.ErrorSampleNotFound) {
 				return ctx.Status(fiber.StatusNotFound).SendString(err.Error())
 			}
@@ -77,7 +77,7 @@ func (h *SampleAPIController) deleteSample() fiber.Handler {
 	}
 }
 
-func (h *SampleAPIController) createSample() fiber.Handler {
+func (c *SampleAPIController) createSample() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		request := new(CreateSampleRequest)
 		if err := ctx.BodyParser(request); err != nil {
@@ -89,7 +89,7 @@ func (h *SampleAPIController) createSample() fiber.Handler {
 			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 		}
 
-		sample, err := h.sampleRepository.CreateSample(&sample.Sample{
+		sample, err := c.sampleRepository.CreateSample(&sample.Sample{
 			Name:  request.Name,
 			Email: request.Email,
 		})
@@ -101,7 +101,7 @@ func (h *SampleAPIController) createSample() fiber.Handler {
 	}
 }
 
-func (h *SampleAPIController) updateSample() fiber.Handler {
+func (c *SampleAPIController) updateSample() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		sampleID := ctx.Params("id")
 
@@ -115,7 +115,7 @@ func (h *SampleAPIController) updateSample() fiber.Handler {
 			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 		}
 
-		sample, err := h.sampleRepository.UpdateSample(
+		sample, err := c.sampleRepository.UpdateSample(
 			&sample.Sample{
 				ID:    sampleID,
 				Name:  request.Name,
