@@ -1,6 +1,9 @@
 package gormfx
 
 import (
+	"context"
+	"github.com/BOAZ-LKVK/LKVK-server/domain/recommendation"
+	"github.com/BOAZ-LKVK/LKVK-server/domain/restaurant"
 	"go.uber.org/fx"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -26,12 +29,23 @@ var Module = fx.Module("gorm",
 
 func New(lc fx.Lifecycle, p Params) (Result, error) {
 	// TODO: mysql로 변경
-	db, err := gorm.Open(sqlite.Open("gorm.db"), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open("gorm.db"), &gorm.Config{
+		DisableForeignKeyConstraintWhenMigrating: true,
+	})
 	if err != nil {
 		return Result{}, err
 	}
 
-	// TODO: close 등 lifecycle 관리가 필요한지 확인하고 관련 코드 추가
+	lc.Append(
+		fx.Hook{
+			OnStart: func(ctx context.Context) error {
+				return db.AutoMigrate(
+					&restaurant.RestaurantImage{}, &restaurant.Restaurant{}, &restaurant.RestaurantMenu{}, &restaurant.RestaurantReview{},
+					&recommendation.RestaurantRecommendation{}, &recommendation.RestaurantRecommendationRequest{},
+				)
+			},
+		},
+	)
 
 	return Result{DB: db}, nil
 }
