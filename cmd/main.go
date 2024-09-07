@@ -2,8 +2,8 @@ package main
 
 import (
 	sample_api "github.com/BOAZ-LKVK/LKVK-server/api/sample"
-	"github.com/BOAZ-LKVK/LKVK-server/pkg/fiberfx"
-	"github.com/BOAZ-LKVK/LKVK-server/pkg/zapfx"
+	fiberfx2 "github.com/BOAZ-LKVK/LKVK-server/pkg/fx/fiberfx"
+	"github.com/BOAZ-LKVK/LKVK-server/pkg/fx/zapfx"
 	sample_repository "github.com/BOAZ-LKVK/LKVK-server/repository/sample"
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxevent"
@@ -18,10 +18,10 @@ func main() {
 		),
 		fx.Provide(
 			sample_repository.NewSampleRepository,
-			fiberfx.AsAPIController(
+			fiberfx2.AsAPIController(
 				sample_api.NewSampleAPIHandler,
 			),
 		),
-		fiberfx.Module,
+		fiberfx2.Module,
 	).Run()
 }
