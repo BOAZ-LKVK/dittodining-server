@@ -10,22 +10,22 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-// SampleAPIHandler implements apicontroller.APIController
-var _ apicontroller.APIController = (*SampleAPIHandler)(nil)
+// SampleAPIController implements apicontroller.APIController
+var _ apicontroller.APIController = (*SampleAPIController)(nil)
 
-type SampleAPIHandler struct {
+type SampleAPIController struct {
 	sampleRepository sample_repository.SampleRepository
 }
 
-func NewSampleAPIHandler(sampleRepository sample_repository.SampleRepository) *SampleAPIHandler {
-	return &SampleAPIHandler{sampleRepository: sampleRepository}
+func NewSampleAPIHandler(sampleRepository sample_repository.SampleRepository) *SampleAPIController {
+	return &SampleAPIController{sampleRepository: sampleRepository}
 }
 
-func (h *SampleAPIHandler) Pattern() string {
+func (h *SampleAPIController) Pattern() string {
 	return "/samples"
 }
 
-func (h *SampleAPIHandler) Handlers() []*apicontroller.APIHandler {
+func (h *SampleAPIController) Handlers() []*apicontroller.APIHandler {
 	return []*apicontroller.APIHandler{
 		apicontroller.NewAPIHandler("", fiber.MethodGet, h.listSamples()),
 		apicontroller.NewAPIHandler("/:id", fiber.MethodGet, h.getSample()),
@@ -35,7 +35,7 @@ func (h *SampleAPIHandler) Handlers() []*apicontroller.APIHandler {
 	}
 }
 
-func (h *SampleAPIHandler) listSamples() fiber.Handler {
+func (h *SampleAPIController) listSamples() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		samples, err := h.sampleRepository.FindAllSamples()
 		if err != nil {
@@ -46,7 +46,7 @@ func (h *SampleAPIHandler) listSamples() fiber.Handler {
 	}
 }
 
-func (h *SampleAPIHandler) getSample() fiber.Handler {
+func (h *SampleAPIController) getSample() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		sampleID := ctx.Params("id")
 		sample, err := h.sampleRepository.FindOneSample(sampleID)
@@ -62,7 +62,7 @@ func (h *SampleAPIHandler) getSample() fiber.Handler {
 	}
 }
 
-func (h *SampleAPIHandler) deleteSample() fiber.Handler {
+func (h *SampleAPIController) deleteSample() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		sampleID := ctx.Params("id")
 		if err := h.sampleRepository.DeleteSample(sampleID); err != nil {
@@ -77,7 +77,7 @@ func (h *SampleAPIHandler) deleteSample() fiber.Handler {
 	}
 }
 
-func (h *SampleAPIHandler) createSample() fiber.Handler {
+func (h *SampleAPIController) createSample() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		request := new(CreateSampleRequest)
 		if err := ctx.BodyParser(request); err != nil {
@@ -101,7 +101,7 @@ func (h *SampleAPIHandler) createSample() fiber.Handler {
 	}
 }
 
-func (h *SampleAPIHandler) updateSample() fiber.Handler {
+func (h *SampleAPIController) updateSample() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		sampleID := ctx.Params("id")
 
