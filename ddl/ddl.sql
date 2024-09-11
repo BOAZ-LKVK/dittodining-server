@@ -103,7 +103,8 @@ CREATE TABLE `restaurant_recommendation_request`
     `updated_at`                           DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정 일시',
     PRIMARY KEY (`restaurant_recommendation_request_id`),
     KEY `idx_restaurant_recommendation_request_m1` (`created_at`),
-    KEY `idx_restaurant_recommendation_request_m2` (`updated_at`)
+    KEY `idx_restaurant_recommendation_request_m2` (`updated_at`),
+    KEY `idx_restaurant_recommendation_request_m3` (`user_id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = `utf8mb4` COMMENT '음식점 추천 요청';
 
