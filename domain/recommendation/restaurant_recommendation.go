@@ -1,14 +1,14 @@
 package recommendation
 
-import (
-	"time"
-)
+import "github.com/shopspring/decimal"
 
 type RestaurantRecommendation struct {
 	RestaurantRecommendationID        int64 `gorm:"primaryKey"`
 	RestaurantRecommendationRequestID int64
 	RestaurantID                      int64
+	DistanceInMeters                  decimal.Decimal
+}
 
-	CreatedAt time.Time `gorm:"autoCreateTime"`
-	UpdatedAt time.Time `gorm:"autoUpdateTime"`
+func (r *RestaurantRecommendation) TableName() string {
+	return "restaurant_recommendation"
 }

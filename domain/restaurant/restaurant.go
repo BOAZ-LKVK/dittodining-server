@@ -1,18 +1,26 @@
 package restaurant
 
 import (
-	"time"
+	"github.com/shopspring/decimal"
 )
 
 type Restaurant struct {
-	RestaurantID        int64 `gorm:"primaryKey"`
-	Name                string
-	Catchphrase         string
-	PriceRangePerPerson string
-	Distance            string
-	BusinessHoursJSON   string
-	RestaurantImages    []RestaurantImage `gorm:"references:RestaurantID"`
+	RestaurantID          int64 `gorm:"primaryKey"`
+	Name                  string
+	Address               string
+	Description           string
+	MaximumPricePerPerson decimal.Decimal
+	MinimumPricePerPerson decimal.Decimal
+	Longitude             decimal.Decimal
+	Latitude              decimal.Decimal
+	// BusinessHoursJSON is BusinessHour structs in JSON format
+	BusinessHoursJSON     string
+	RecommendationScore   decimal.Decimal
+	AverageScoreFromNaver decimal.Decimal
+	AverageScoreFromKakao decimal.Decimal
+	RestaurantImages      []RestaurantImage `gorm:"references:RestaurantID"`
+}
 
-	CreatedAt time.Time `gorm:"autoCreateTime"`
-	UpdatedAt time.Time `gorm:"autoUpdateTime"`
+func (r *Restaurant) TableName() string {
+	return "restaurant"
 }

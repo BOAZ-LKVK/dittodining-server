@@ -1,10 +1,12 @@
 package recommendation
 
+import "github.com/shopspring/decimal"
+
 type UserLocation struct {
-	Latitude  float64
-	Longitude float64
+	Latitude  decimal.Decimal `gorm:"type:decimal(11,8)"`
+	Longitude decimal.Decimal `gorm:"type:decimal(11,8)"`
 }
 
-func NewUserLocation(latitude float64, longitude float64) UserLocation {
+func NewUserLocation(latitude decimal.Decimal, longitude decimal.Decimal) UserLocation {
 	return UserLocation{Latitude: latitude, Longitude: longitude}
 }

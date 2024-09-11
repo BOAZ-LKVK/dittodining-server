@@ -1,15 +1,18 @@
 package restaurant
 
-import "time"
+import (
+	"github.com/shopspring/decimal"
+)
 
 type RestaurantMenu struct {
 	RestaurantMenuID int64 `gorm:"primaryKey"`
 	RestaurantID     int64
 	Name             string
-	Price            int64
-	Description      string
+	Price            decimal.Decimal
+	Description      *string
 	ImageURL         *string
+}
 
-	CreatedAt time.Time `gorm:"autoCreateTime"`
-	UpdatedAt time.Time `gorm:"autoUpdateTime"`
+func (m *RestaurantMenu) TableName() string {
+	return "restaurant_menu"
 }

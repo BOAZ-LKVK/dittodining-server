@@ -1,15 +1,19 @@
 package restaurant
 
-import "time"
+import (
+	"github.com/shopspring/decimal"
+	"time"
+)
 
 type RestaurantReview struct {
 	RestaurantReviewID int64 `gorm:"primaryKey"`
 	RestaurantID       int64
 	WriterName         string
-	Score              float32
-	Content            string
-	WrittenAt          time.Time
+	Score              decimal.NullDecimal
+	Content            *string
+	WroteAt            time.Time
+}
 
-	CreatedAt time.Time `gorm:"autoCreateTime"`
-	UpdatedAt time.Time `gorm:"autoUpdateTime"`
+func (r *RestaurantReview) TableName() string {
+	return "restaurant_review"
 }

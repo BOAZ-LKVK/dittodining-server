@@ -13,8 +13,8 @@ const (
 )
 
 type BusinessHour struct {
-	DayOfWeekEnum DayOfWeekEnum
-	OpenTime      string
-	ClosingTime   string
-	IsClosedDay   bool
+	DayOfWeekEnum DayOfWeekEnum `json:"dayOfWeek"`
+	OpenTime      string        `json:"openTime"`
+	ClosingTime   string        `json:"closingTime"`
+	IsClosedDay   bool          `json:"isClosedDay"`
 }
