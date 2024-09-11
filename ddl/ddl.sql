@@ -81,6 +81,7 @@ CREATE TABLE `restaurant_review`
     `writer_name`          VARCHAR(255)  NOT NULL COMMENT '작성자 이름',
     `score`                DECIMAL(5, 2) NULL COMMENT '평점',
     `content`              TEXT          NULL COMMENT '내용',
+    `wrote_at`             DATETIME      NOT NULL COMMENT '작성 일시',
     `created_at`           DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '생성 일시',
     `updated_at`           DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정 일시',
     PRIMARY KEY (`restaurant_review_id`),
