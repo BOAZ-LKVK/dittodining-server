@@ -2,6 +2,7 @@ package recommendation
 
 import (
 	"errors"
+	"github.com/shopspring/decimal"
 )
 
 type RequestRestaurantRecommendationRequest struct {
@@ -9,8 +10,8 @@ type RequestRestaurantRecommendationRequest struct {
 }
 
 type UserLocationRequest struct {
-	Latitude  *float64 `json:"latitude"`
-	Longitude *float64 `json:"longitude"`
+	Latitude  decimal.NullDecimal `json:"latitude"`
+	Longitude decimal.NullDecimal `json:"longitude"`
 }
 
 func (r *RequestRestaurantRecommendationRequest) Validate() error {
@@ -18,11 +19,11 @@ func (r *RequestRestaurantRecommendationRequest) Validate() error {
 		return errors.New("userLocation is required")
 	}
 
-	if r.UserLocation.Latitude == nil {
+	if !r.UserLocation.Latitude.Valid {
 		return errors.New("userLocation.latitude is required")
 	}
 
-	if r.UserLocation.Longitude == nil {
+	if !r.UserLocation.Longitude.Valid {
 		return errors.New("userLocation.longitude is required")
 	}
 

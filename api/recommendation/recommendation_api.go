@@ -55,8 +55,8 @@ func (c *RecommendationAPIController) requestRestaurantRecommendation() fiber.Ha
 		result, err := c.restaurantRecommendationService.RequestRestaurantRecommendation(
 			nil,
 			recommendation.UserLocation{
-				Latitude:  *request.UserLocation.Latitude,
-				Longitude: *request.UserLocation.Longitude,
+				Latitude:  (*request).UserLocation.Latitude.Decimal,
+				Longitude: (*request).UserLocation.Longitude.Decimal,
 			},
 			time.Now(),
 		)
