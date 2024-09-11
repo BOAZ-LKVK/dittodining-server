@@ -1,9 +1,12 @@
 package recommendation
 
 import (
+	"errors"
 	"github.com/BOAZ-LKVK/LKVK-server/domain/recommendation"
 	"gorm.io/gorm"
 )
+
+var ErrRestaurantRecommendationRequestNotFound = errors.New("restaurant recommendation request not found")
 
 type RestaurantRecommendationRequestRepository interface {
 	Create(request *recommendation.RestaurantRecommendationRequest) (*recommendation.RestaurantRecommendationRequest, error)
@@ -28,11 +31,16 @@ func (r *restaurantRecommendationRequestRepository) Create(request *recommendati
 }
 
 func (r *restaurantRecommendationRequestRepository) FindByID(restaurantRecommendationRequestID int64) (*recommendation.RestaurantRecommendationRequest, error) {
-	request := &recommendation.RestaurantRecommendationRequest{
+	var request *recommendation.RestaurantRecommendationRequest
+
+	result := r.db.Where(recommendation.RestaurantRecommendationRequest{
 		RestaurantRecommendationRequestID: restaurantRecommendationRequestID,
-	}
-	result := r.db.Find(request)
+	}).First(&request)
 	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, ErrRestaurantRecommendationRequestNotFound
+		}
+
 		return nil, result.Error
 	}
 
