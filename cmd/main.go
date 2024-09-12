@@ -7,6 +7,7 @@ import (
 	"github.com/BOAZ-LKVK/LKVK-server/pkg/fx/gormfx"
 	"github.com/BOAZ-LKVK/LKVK-server/pkg/fx/zapfx"
 	recommendation_repository "github.com/BOAZ-LKVK/LKVK-server/repository/recommendation"
+	restaurant_repository "github.com/BOAZ-LKVK/LKVK-server/repository/restaurant"
 	sample_repository "github.com/BOAZ-LKVK/LKVK-server/repository/sample"
 	recommendation_service "github.com/BOAZ-LKVK/LKVK-server/service/recommendation"
 	"go.uber.org/fx"
@@ -27,6 +28,9 @@ func main() {
 			recommendation_repository.NewRestaurantRecommendationRepository,
 			recommendation_repository.NewRestaurantRecommendationRequestRepository,
 			recommendation_service.NewRestaurantRecommendationService,
+			restaurant_repository.NewRestaurantRepository,
+			restaurant_repository.NewRestaurantMenuRepository,
+			restaurant_repository.NewRestaurantReviewRepository,
 		),
 		fiberfx.Module,
 		gormfx.Module,

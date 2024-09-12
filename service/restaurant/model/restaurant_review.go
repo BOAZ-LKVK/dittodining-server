@@ -21,14 +21,14 @@ type RestaurantReviewStatistics struct {
 }
 
 type RestaurantReviewItem struct {
-	RestaurantReviewID int64           `json:"restaurantReviewId"`
-	WriterName         string          `json:"writerName"`
-	Score              decimal.Decimal `json:"score"`
-	Content            string          `json:"content"`
-	WrittenAt          time.Time       `json:"writtenAt"`
+	RestaurantReviewID int64               `json:"restaurantReviewId"`
+	WriterName         string              `json:"writerName"`
+	Score              decimal.NullDecimal `json:"score"`
+	Content            *string             `json:"content"`
+	WroteAt            time.Time           `json:"wroteAt"`
 }
 
 type RestaurantReview struct {
 	Statistics *RestaurantReviewStatistics `json:"statistics"`
-	Reviews    []RestaurantReviewItem      `json:"reviews"`
+	Reviews    []*RestaurantReviewItem     `json:"reviews"`
 }

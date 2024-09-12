@@ -35,7 +35,7 @@ func (r *restaurantRecommendationRequestRepository) FindByID(restaurantRecommend
 
 	result := r.db.Where(recommendation.RestaurantRecommendationRequest{
 		RestaurantRecommendationRequestID: restaurantRecommendationRequestID,
-	}).First(&request)
+	}).Find(&request)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return nil, ErrRestaurantRecommendationRequestNotFound
