@@ -8,6 +8,7 @@ import (
 type RestaurantReviewRepository interface {
 	FindAllByRestaurantID(restaurantID int64) ([]*restaurant.RestaurantReview, error)
 	FindAllByRestaurantIDs(restaurantIDs []int64) ([]*restaurant.RestaurantReview, error)
+	CountByRestaurantID(restaurantID int64) (int64, error)
 }
 
 func NewRestaurantReviewRepository(db *gorm.DB) RestaurantReviewRepository {
@@ -43,4 +44,19 @@ func (r *restaurantReviewRepository) FindAllByRestaurantIDs(restaurantIDs []int6
 	}
 
 	return reviews, nil
+}
+
+func (r *restaurantReviewRepository) CountByRestaurantID(restaurantID int64) (int64, error) {
+	var count int64
+	result := r.db.
+		Model(&restaurant.RestaurantReview{}).
+		Where(restaurant.RestaurantReview{
+			RestaurantID: restaurantID,
+		}).
+		Count(&count)
+	if result.Error != nil {
+		return 0, result.Error
+	}
+
+	return count, nil
 }

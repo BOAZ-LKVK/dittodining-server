@@ -150,6 +150,11 @@ func (s *restaurantRecommendationService) ListRecommendedRestaurants(restaurantR
 			})
 		}
 
+		totalCount, err := s.restaurantReviewRepository.CountByRestaurantID(recommendation.RestaurantID)
+		if err != nil {
+			return nil, err
+		}
+
 		recommendedRestaurants = append(recommendedRestaurants, &model.RecommendedRestaurant{
 			Restaurant: model.RestaurantRecommendation{
 				RestaurantID:        recommendation.RestaurantID,
@@ -163,7 +168,6 @@ func (s *restaurantRecommendationService) ListRecommendedRestaurants(restaurantR
 			MenuItems: menuItemModels,
 			Review: restaurant_model.RestaurantReview{
 				Statistics: &restaurant_model.RestaurantReviewStatistics{
-					// TODO: refactor restaurant에 review_total_count 추가
 					Kakao: &restaurant_model.RestaurantReviewKakaoStatistics{
 						AverageScore: r.AverageScoreFromKakao,
 						Count:        int64(len(reviewItems)),
@@ -173,7 +177,8 @@ func (s *restaurantRecommendationService) ListRecommendedRestaurants(restaurantR
 						Count:        int64(len(reviewItems)),
 					},
 				},
-				Reviews: reviewModels,
+				Reviews:    reviewModels,
+				TotalCount: totalCount,
 			},
 		})
 	}

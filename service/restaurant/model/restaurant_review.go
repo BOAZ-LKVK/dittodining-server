@@ -31,4 +31,5 @@ type RestaurantReviewItem struct {
 type RestaurantReview struct {
 	Statistics *RestaurantReviewStatistics `json:"statistics"`
 	Reviews    []*RestaurantReviewItem     `json:"reviews"`
+	TotalCount int64                       `json:"totalCount"`
 }
