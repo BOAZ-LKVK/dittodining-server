@@ -1,7 +1,7 @@
 package restaurant
 
 import (
-	"github.com/BOAZ-LKVK/LKVK-server/domain/restaurant"
+	"github.com/BOAZ-LKVK/LKVK-server/server/domain/restaurant"
 	"gorm.io/gorm"
 )
 

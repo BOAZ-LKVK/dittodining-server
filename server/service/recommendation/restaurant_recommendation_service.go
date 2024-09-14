@@ -3,12 +3,12 @@ package recommendation
 import (
 	"encoding/json"
 	"fmt"
-	recommendation_domain "github.com/BOAZ-LKVK/LKVK-server/domain/recommendation"
-	restaurant_domain "github.com/BOAZ-LKVK/LKVK-server/domain/restaurant"
-	recommendation_repository "github.com/BOAZ-LKVK/LKVK-server/repository/recommendation"
-	restaurant_repository "github.com/BOAZ-LKVK/LKVK-server/repository/restaurant"
-	"github.com/BOAZ-LKVK/LKVK-server/service/recommendation/model"
-	restaurant_model "github.com/BOAZ-LKVK/LKVK-server/service/restaurant/model"
+	recommendation2 "github.com/BOAZ-LKVK/LKVK-server/server/domain/recommendation"
+	restaurant2 "github.com/BOAZ-LKVK/LKVK-server/server/domain/restaurant"
+	"github.com/BOAZ-LKVK/LKVK-server/server/repository/recommendation"
+	"github.com/BOAZ-LKVK/LKVK-server/server/repository/restaurant"
+	model3 "github.com/BOAZ-LKVK/LKVK-server/server/service/recommendation/model"
+	model2 "github.com/BOAZ-LKVK/LKVK-server/server/service/restaurant/model"
 	"github.com/pkg/errors"
 	"github.com/samber/lo"
 	"strconv"
@@ -16,17 +16,17 @@ import (
 )
 
 type RestaurantRecommendationService interface {
-	RequestRestaurantRecommendation(userID *int64, userLocation recommendation_domain.UserLocation, now time.Time) (*model.RequestRestaurantRecommendationResult, error)
-	GetRestaurantRecommendationRequest(restaurantRecommendationRequestID int64) (*recommendation_domain.RestaurantRecommendationRequest, error)
-	ListRecommendedRestaurants(restaurantRecommendationRequestID int64, cursorRestaurantRecommendationID *int64, limit *int64) (*model.ListRecommendedRestaurantsResult, error)
+	RequestRestaurantRecommendation(userID *int64, userLocation recommendation2.UserLocation, now time.Time) (*model3.RequestRestaurantRecommendationResult, error)
+	GetRestaurantRecommendationRequest(restaurantRecommendationRequestID int64) (*recommendation2.RestaurantRecommendationRequest, error)
+	ListRecommendedRestaurants(restaurantRecommendationRequestID int64, cursorRestaurantRecommendationID *int64, limit *int64) (*model3.ListRecommendedRestaurantsResult, error)
 }
 
 func NewRestaurantRecommendationService(
-	restaurantRecommendationRequestRepository recommendation_repository.RestaurantRecommendationRequestRepository,
-	restaurantRecommendationRepository recommendation_repository.RestaurantRecommendationRepository,
-	restaurantRepository restaurant_repository.RestaurantRepository,
-	restaurantMenuRepository restaurant_repository.RestaurantMenuRepository,
-	restaurantReviewRepository restaurant_repository.RestaurantReviewRepository,
+	restaurantRecommendationRequestRepository recommendation.RestaurantRecommendationRequestRepository,
+	restaurantRecommendationRepository recommendation.RestaurantRecommendationRepository,
+	restaurantRepository restaurant.RestaurantRepository,
+	restaurantMenuRepository restaurant.RestaurantMenuRepository,
+	restaurantReviewRepository restaurant.RestaurantReviewRepository,
 ) RestaurantRecommendationService {
 	return &restaurantRecommendationService{
 		restaurantRecommendationRequestRepository: restaurantRecommendationRequestRepository,
@@ -38,17 +38,17 @@ func NewRestaurantRecommendationService(
 }
 
 type restaurantRecommendationService struct {
-	restaurantRecommendationRequestRepository recommendation_repository.RestaurantRecommendationRequestRepository
-	restaurantRecommendationRepository        recommendation_repository.RestaurantRecommendationRepository
-	restaurantRepository                      restaurant_repository.RestaurantRepository
-	restaurantMenuRepository                  restaurant_repository.RestaurantMenuRepository
-	restaurantReviewRepository                restaurant_repository.RestaurantReviewRepository
+	restaurantRecommendationRequestRepository recommendation.RestaurantRecommendationRequestRepository
+	restaurantRecommendationRepository        recommendation.RestaurantRecommendationRepository
+	restaurantRepository                      restaurant.RestaurantRepository
+	restaurantMenuRepository                  restaurant.RestaurantMenuRepository
+	restaurantReviewRepository                restaurant.RestaurantReviewRepository
 }
 
-func (s *restaurantRecommendationService) RequestRestaurantRecommendation(userID *int64, userLocation recommendation_domain.UserLocation, now time.Time) (*model.RequestRestaurantRecommendationResult, error) {
-	recommendationRequest := recommendation_domain.NewRestaurantRecommendationRequest(
+func (s *restaurantRecommendationService) RequestRestaurantRecommendation(userID *int64, userLocation recommendation2.UserLocation, now time.Time) (*model3.RequestRestaurantRecommendationResult, error) {
+	recommendationRequest := recommendation2.NewRestaurantRecommendationRequest(
 		userID,
-		recommendation_domain.NewUserLocation(
+		recommendation2.NewUserLocation(
 			userLocation.Latitude, userLocation.Longitude,
 		),
 		// TODO: testablity를 위해 clock interface 개발 후 대체
@@ -61,16 +61,16 @@ func (s *restaurantRecommendationService) RequestRestaurantRecommendation(userID
 
 	// TODO: restaurantRecommendations 생성 로직 추가 - 미리 추천 데이터를 만들고 노출하는 구조
 
-	return &model.RequestRestaurantRecommendationResult{
+	return &model3.RequestRestaurantRecommendationResult{
 		RestaurantRecommendationRequestID: created.RestaurantRecommendationRequestID,
 	}, nil
 }
 
-func (s *restaurantRecommendationService) GetRestaurantRecommendationRequest(restaurantRecommendationRequestID int64) (*recommendation_domain.RestaurantRecommendationRequest, error) {
+func (s *restaurantRecommendationService) GetRestaurantRecommendationRequest(restaurantRecommendationRequestID int64) (*recommendation2.RestaurantRecommendationRequest, error) {
 	return s.restaurantRecommendationRequestRepository.FindByID(restaurantRecommendationRequestID)
 }
 
-func (s *restaurantRecommendationService) ListRecommendedRestaurants(restaurantRecommendationRequestID int64, cursorRestaurantRecommendationID *int64, limit *int64) (*model.ListRecommendedRestaurantsResult, error) {
+func (s *restaurantRecommendationService) ListRecommendedRestaurants(restaurantRecommendationRequestID int64, cursorRestaurantRecommendationID *int64, limit *int64) (*model3.ListRecommendedRestaurantsResult, error) {
 	_, err := s.GetRestaurantRecommendationRequest(restaurantRecommendationRequestID)
 	if err != nil {
 		return nil, err
@@ -85,7 +85,7 @@ func (s *restaurantRecommendationService) ListRecommendedRestaurants(restaurantR
 		return nil, err
 	}
 
-	restaurantIDs := lo.Map(recommendations, func(item *recommendation_domain.RestaurantRecommendation, index int) int64 {
+	restaurantIDs := lo.Map(recommendations, func(item *recommendation2.RestaurantRecommendation, index int) int64 {
 		return item.RestaurantID
 	})
 
@@ -93,7 +93,7 @@ func (s *restaurantRecommendationService) ListRecommendedRestaurants(restaurantR
 	if err != nil {
 		return nil, err
 	}
-	restaurantByID := lo.SliceToMap(restaurants, func(item *restaurant_domain.Restaurant) (int64, *restaurant_domain.Restaurant) {
+	restaurantByID := lo.SliceToMap(restaurants, func(item *restaurant2.Restaurant) (int64, *restaurant2.Restaurant) {
 		return item.RestaurantID, item
 	})
 
@@ -101,25 +101,25 @@ func (s *restaurantRecommendationService) ListRecommendedRestaurants(restaurantR
 	if err != nil {
 		return nil, err
 	}
-	menusByRestaurantID := lo.GroupBy(menus, func(item *restaurant_domain.RestaurantMenu) int64 {
+	menusByRestaurantID := lo.GroupBy(menus, func(item *restaurant2.RestaurantMenu) int64 {
 		return item.RestaurantID
 	})
 	reviews, err := s.restaurantReviewRepository.FindAllByRestaurantIDs(restaurantIDs)
 	if err != nil {
 		return nil, err
 	}
-	reviewsByRestaurantID := lo.GroupBy(reviews, func(item *restaurant_domain.RestaurantReview) int64 {
+	reviewsByRestaurantID := lo.GroupBy(reviews, func(item *restaurant2.RestaurantReview) int64 {
 		return item.RestaurantID
 	})
 
-	recommendedRestaurants := make([]*model.RecommendedRestaurant, 0, len(recommendations))
+	recommendedRestaurants := make([]*model3.RecommendedRestaurant, 0, len(recommendations))
 	for _, recommendation := range recommendations {
 		r := restaurantByID[recommendation.RestaurantID]
 		menuItems := menusByRestaurantID[recommendation.RestaurantID]
 		reviewItems := reviewsByRestaurantID[recommendation.RestaurantID]
 
 		// TODO: refactor domain 쪽으로 코드 이전
-		var businessHours []*restaurant_domain.BusinessHour
+		var businessHours []*restaurant2.BusinessHour
 		if err := json.Unmarshal([]byte(r.BusinessHoursJSON), &businessHours); err != nil {
 			return nil, errors.Wrap(err, "failed to unmarshal business hours")
 		}
@@ -129,9 +129,9 @@ func (s *restaurantRecommendationService) ListRecommendedRestaurants(restaurantR
 			restaurantImageURLs = append(restaurantImageURLs, image.ImageURL)
 		}
 
-		menuItemModels := make([]*restaurant_model.RestaurantMenu, 0, len(menuItems))
+		menuItemModels := make([]*model2.RestaurantMenu, 0, len(menuItems))
 		for _, item := range menuItems {
-			menuItemModels = append(menuItemModels, &restaurant_model.RestaurantMenu{
+			menuItemModels = append(menuItemModels, &model2.RestaurantMenu{
 				RestaurantMenuID: item.RestaurantMenuID,
 				Name:             item.Name,
 				Description:      item.Description,
@@ -139,9 +139,9 @@ func (s *restaurantRecommendationService) ListRecommendedRestaurants(restaurantR
 			})
 		}
 
-		reviewModels := make([]*restaurant_model.RestaurantReviewItem, 0, len(reviewItems))
+		reviewModels := make([]*model2.RestaurantReviewItem, 0, len(reviewItems))
 		for _, item := range reviewItems {
-			reviewModels = append(reviewModels, &restaurant_model.RestaurantReviewItem{
+			reviewModels = append(reviewModels, &model2.RestaurantReviewItem{
 				RestaurantReviewID: item.RestaurantReviewID,
 				WriterName:         item.WriterName,
 				Score:              item.Score,
@@ -155,8 +155,8 @@ func (s *restaurantRecommendationService) ListRecommendedRestaurants(restaurantR
 			return nil, err
 		}
 
-		recommendedRestaurants = append(recommendedRestaurants, &model.RecommendedRestaurant{
-			Restaurant: model.RestaurantRecommendation{
+		recommendedRestaurants = append(recommendedRestaurants, &model3.RecommendedRestaurant{
+			Restaurant: model3.RestaurantRecommendation{
 				RestaurantID:        recommendation.RestaurantID,
 				Name:                r.Name,
 				Description:         r.Description,
@@ -166,13 +166,13 @@ func (s *restaurantRecommendationService) ListRecommendedRestaurants(restaurantR
 				RestaurantImageURLs: restaurantImageURLs,
 			},
 			MenuItems: menuItemModels,
-			Review: restaurant_model.RestaurantReview{
-				Statistics: &restaurant_model.RestaurantReviewStatistics{
-					Kakao: &restaurant_model.RestaurantReviewKakaoStatistics{
+			Review: model2.RestaurantReview{
+				Statistics: &model2.RestaurantReviewStatistics{
+					Kakao: &model2.RestaurantReviewKakaoStatistics{
 						AverageScore: r.AverageScoreFromKakao,
 						Count:        int64(len(reviewItems)),
 					},
-					Naver: &restaurant_model.RestaurantReviewNaverStatistics{
+					Naver: &model2.RestaurantReviewNaverStatistics{
 						AverageScore: r.AverageScoreFromNaver,
 						Count:        int64(len(reviewItems)),
 					},
@@ -189,7 +189,7 @@ func (s *restaurantRecommendationService) ListRecommendedRestaurants(restaurantR
 		nextCursor = lo.ToPtr(strconv.FormatInt(last.RestaurantRecommendationID, 10))
 	}
 
-	return &model.ListRecommendedRestaurantsResult{
+	return &model3.ListRecommendedRestaurantsResult{
 		RecommendedRestaurants: recommendedRestaurants,
 		NextCursor:             nextCursor,
 	}, nil

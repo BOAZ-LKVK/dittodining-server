@@ -1,20 +1,20 @@
 package restaurant
 
 import (
-	restaurant_repository "github.com/BOAZ-LKVK/LKVK-server/repository/restaurant"
-	"github.com/BOAZ-LKVK/LKVK-server/service/restaurant/model"
+	"github.com/BOAZ-LKVK/LKVK-server/server/repository/restaurant"
+	model2 "github.com/BOAZ-LKVK/LKVK-server/server/service/restaurant/model"
 )
 
 type RestaurantService interface {
-	GetRestaurant(restaurantID int64) (*model.Restaurant, error)
-	ListRestaurantMenus(restaurantID int64) ([]model.RestaurantMenu, error)
-	ListRestaurantReviews(restaurantID int64) ([]model.RestaurantReview, error)
+	GetRestaurant(restaurantID int64) (*model2.Restaurant, error)
+	ListRestaurantMenus(restaurantID int64) ([]model2.RestaurantMenu, error)
+	ListRestaurantReviews(restaurantID int64) ([]model2.RestaurantReview, error)
 }
 
 func NewRestaurantService(
-	restaurantRepository restaurant_repository.RestaurantRepository,
-	restaurantMenuRepository restaurant_repository.RestaurantMenuRepository,
-	restaurantReviewRepository restaurant_repository.RestaurantReviewRepository,
+	restaurantRepository restaurant.RestaurantRepository,
+	restaurantMenuRepository restaurant.RestaurantMenuRepository,
+	restaurantReviewRepository restaurant.RestaurantReviewRepository,
 ) RestaurantService {
 	return &restaurantService{
 		restaurantRepository:       restaurantRepository,
@@ -24,18 +24,18 @@ func NewRestaurantService(
 }
 
 type restaurantService struct {
-	restaurantRepository       restaurant_repository.RestaurantRepository
-	restaurantMenuRepository   restaurant_repository.RestaurantMenuRepository
-	restaurantReviewRepository restaurant_repository.RestaurantReviewRepository
+	restaurantRepository       restaurant.RestaurantRepository
+	restaurantMenuRepository   restaurant.RestaurantMenuRepository
+	restaurantReviewRepository restaurant.RestaurantReviewRepository
 }
 
-func (s *restaurantService) GetRestaurant(restaurantID int64) (*model.Restaurant, error) {
+func (s *restaurantService) GetRestaurant(restaurantID int64) (*model2.Restaurant, error) {
 	restaurant, err := s.restaurantRepository.FindByID(restaurantID)
 	if err != nil {
 		return nil, err
 	}
 
-	return &model.Restaurant{
+	return &model2.Restaurant{
 		RestaurantID:        restaurant.RestaurantID,
 		Name:                restaurant.Name,
 		Description:         restaurant.Description,
@@ -46,15 +46,15 @@ func (s *restaurantService) GetRestaurant(restaurantID int64) (*model.Restaurant
 	}, nil
 }
 
-func (s *restaurantService) ListRestaurantMenus(restaurantID int64) ([]model.RestaurantMenu, error) {
+func (s *restaurantService) ListRestaurantMenus(restaurantID int64) ([]model2.RestaurantMenu, error) {
 	menus, err := s.restaurantMenuRepository.FindAllByRestaurantID(restaurantID)
 	if err != nil {
 		return nil, err
 	}
 
-	var modelMenus []model.RestaurantMenu
+	var modelMenus []model2.RestaurantMenu
 	for _, menu := range menus {
-		modelMenus = append(modelMenus, model.RestaurantMenu{
+		modelMenus = append(modelMenus, model2.RestaurantMenu{
 			RestaurantMenuID: menu.RestaurantMenuID,
 			Name:             menu.Name,
 			Price:            menu.Price,
@@ -64,15 +64,15 @@ func (s *restaurantService) ListRestaurantMenus(restaurantID int64) ([]model.Res
 	return modelMenus, nil
 }
 
-func (s *restaurantService) ListRestaurantReviews(restaurantID int64) ([]model.RestaurantReview, error) {
+func (s *restaurantService) ListRestaurantReviews(restaurantID int64) ([]model2.RestaurantReview, error) {
 	reviews, err := s.restaurantReviewRepository.FindAllByRestaurantID(restaurantID)
 	if err != nil {
 		return nil, err
 	}
 
-	var modelReviews []model.RestaurantReview
+	var modelReviews []model2.RestaurantReview
 	for _, review := range reviews {
-		modelReviews = append(modelReviews, model.RestaurantReview{
+		modelReviews = append(modelReviews, model2.RestaurantReview{
 			RestaurantReviewID: review.RestaurantReviewID,
 			UserName:           review.UserName,
 			Review:             review.Review,

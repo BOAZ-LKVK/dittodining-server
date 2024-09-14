@@ -1,9 +1,9 @@
 package recommendation
 
 import (
-	"github.com/BOAZ-LKVK/LKVK-server/domain/recommendation"
 	"github.com/BOAZ-LKVK/LKVK-server/pkg/apicontroller"
-	recommendation_service "github.com/BOAZ-LKVK/LKVK-server/service/recommendation"
+	"github.com/BOAZ-LKVK/LKVK-server/server/domain/recommendation"
+	recommendation_service "github.com/BOAZ-LKVK/LKVK-server/server/service/recommendation"
 	"github.com/gofiber/fiber/v2"
 	"github.com/samber/lo"
 	"go.uber.org/zap"

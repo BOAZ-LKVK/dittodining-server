@@ -1,14 +1,14 @@
 package model
 
 import (
-	"github.com/BOAZ-LKVK/LKVK-server/domain/restaurant"
-	"github.com/BOAZ-LKVK/LKVK-server/service/restaurant/model"
+	"github.com/BOAZ-LKVK/LKVK-server/server/domain/restaurant"
+	model2 "github.com/BOAZ-LKVK/LKVK-server/server/service/restaurant/model"
 )
 
 type RecommendedRestaurant struct {
 	Restaurant RestaurantRecommendation `json:"restaurant"`
-	MenuItems  []*model.RestaurantMenu  `json:"menuItems"`
-	Review     model.RestaurantReview   `json:"review"`
+	MenuItems  []*model2.RestaurantMenu `json:"menuItems"`
+	Review     model2.RestaurantReview  `json:"review"`
 }
 
 type RestaurantRecommendation struct {

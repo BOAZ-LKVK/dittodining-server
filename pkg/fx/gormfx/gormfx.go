@@ -2,8 +2,8 @@ package gormfx
 
 import (
 	"context"
-	"github.com/BOAZ-LKVK/LKVK-server/domain/recommendation"
-	"github.com/BOAZ-LKVK/LKVK-server/domain/restaurant"
+	recommendation2 "github.com/BOAZ-LKVK/LKVK-server/server/domain/recommendation"
+	restaurant2 "github.com/BOAZ-LKVK/LKVK-server/server/domain/restaurant"
 	"go.uber.org/fx"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -40,8 +40,8 @@ func New(lc fx.Lifecycle, p Params) (Result, error) {
 		fx.Hook{
 			OnStart: func(ctx context.Context) error {
 				return db.AutoMigrate(
-					&restaurant.RestaurantImage{}, &restaurant.Restaurant{}, &restaurant.RestaurantMenu{}, &restaurant.RestaurantReview{},
-					&recommendation.RestaurantRecommendation{}, &recommendation.RestaurantRecommendationRequest{},
+					&restaurant2.RestaurantImage{}, &restaurant2.Restaurant{}, &restaurant2.RestaurantMenu{}, &restaurant2.RestaurantReview{},
+					&recommendation2.RestaurantRecommendation{}, &recommendation2.RestaurantRecommendationRequest{},
 				)
 			},
 		},

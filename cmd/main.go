@@ -1,13 +1,13 @@
 package main
 
 import (
-	recommendation_api "github.com/BOAZ-LKVK/LKVK-server/api/recommendation"
 	"github.com/BOAZ-LKVK/LKVK-server/pkg/fx/fiberfx"
 	"github.com/BOAZ-LKVK/LKVK-server/pkg/fx/gormfx"
 	"github.com/BOAZ-LKVK/LKVK-server/pkg/fx/zapfx"
-	recommendation_repository "github.com/BOAZ-LKVK/LKVK-server/repository/recommendation"
-	restaurant_repository "github.com/BOAZ-LKVK/LKVK-server/repository/restaurant"
-	recommendation_service "github.com/BOAZ-LKVK/LKVK-server/service/recommendation"
+	recommendation_api "github.com/BOAZ-LKVK/LKVK-server/server/api/recommendation"
+	"github.com/BOAZ-LKVK/LKVK-server/server/repository/recommendation"
+	"github.com/BOAZ-LKVK/LKVK-server/server/repository/restaurant"
+	recommendation_service "github.com/BOAZ-LKVK/LKVK-server/server/service/recommendation"
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxevent"
 	"go.uber.org/zap"
@@ -21,12 +21,12 @@ func main() {
 		),
 		fx.Provide(
 			fiberfx.AsAPIController(recommendation_api.NewRecommendationAPIController),
-			recommendation_repository.NewRestaurantRecommendationRepository,
-			recommendation_repository.NewRestaurantRecommendationRequestRepository,
+			recommendation.NewRestaurantRecommendationRepository,
+			recommendation.NewRestaurantRecommendationRequestRepository,
 			recommendation_service.NewRestaurantRecommendationService,
-			restaurant_repository.NewRestaurantRepository,
-			restaurant_repository.NewRestaurantMenuRepository,
-			restaurant_repository.NewRestaurantReviewRepository,
+			restaurant.NewRestaurantRepository,
+			restaurant.NewRestaurantMenuRepository,
+			restaurant.NewRestaurantReviewRepository,
 		),
 		fiberfx.Module,
 		gormfx.Module,

@@ -1,7 +1,7 @@
 package recommendation
 
 import (
-	"github.com/BOAZ-LKVK/LKVK-server/domain/recommendation"
+	"github.com/BOAZ-LKVK/LKVK-server/server/domain/recommendation"
 	"gorm.io/gorm"
 )
 
