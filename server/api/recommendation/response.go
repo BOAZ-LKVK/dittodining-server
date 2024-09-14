@@ -10,3 +10,5 @@ type ListRecommendedRestaurantsResponse struct {
 	RecommendedRestaurants []*model.RecommendedRestaurant `json:"recommendedRestaurants"`
 	NextCursor             *string                        `json:"nextCursor"`
 }
+
+type SelectRestaurantRecommendationsResponse struct{}

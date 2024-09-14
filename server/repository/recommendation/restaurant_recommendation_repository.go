@@ -7,6 +7,7 @@ import (
 
 type RestaurantRecommendationRepository interface {
 	FindAllByRestaurantRecommendationRequestID(restaurantRecommendationRequestID int64, cursorRestaurantRecommendationRequestID *int64, limit *int64) ([]*recommendation.RestaurantRecommendation, error)
+	FindAllByIDs(restaurantRecommendationIDs []int64) ([]*recommendation.RestaurantRecommendation, error)
 }
 
 func NewRestaurantRecommendationRepository(db *gorm.DB) RestaurantRecommendationRepository {
@@ -42,6 +43,19 @@ func (r *restaurantRecommendationRepository) FindAllByRestaurantRecommendationRe
 			whereConditions...).
 		Order("restaurant_recommendation_request_id DESC").
 		Limit(limitQuery).
+		Find(&recommendations)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return recommendations, nil
+}
+
+func (r *restaurantRecommendationRepository) FindAllByIDs(restaurantRecommendationIDs []int64) ([]*recommendation.RestaurantRecommendation, error) {
+	var recommendations []*recommendation.RestaurantRecommendation
+
+	result := r.db.
+		Where("restaurant_recommendation_id IN ?", restaurantRecommendationIDs).
 		Find(&recommendations)
 	if result.Error != nil {
 		return nil, result.Error

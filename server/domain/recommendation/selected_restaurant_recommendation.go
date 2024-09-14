@@ -10,3 +10,15 @@ type SelectedRestaurantRecommendation struct {
 func (s *SelectedRestaurantRecommendation) TableName() string {
 	return "selected_restaurant_recommendation"
 }
+
+func NewSelectedRestaurantRecommendation(
+	restaurantRecommendationRequestID int64,
+	restaurantRecommendationID int64,
+	restaurantID int64,
+) *SelectedRestaurantRecommendation {
+	return &SelectedRestaurantRecommendation{
+		RestaurantRecommendationRequestID: restaurantRecommendationRequestID,
+		RestaurantRecommendationID:        restaurantRecommendationID,
+		RestaurantID:                      restaurantID,
+	}
+}

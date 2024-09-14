@@ -34,6 +34,7 @@ func (c *RecommendationAPIController) Handlers() []*apicontroller.APIHandler {
 	return []*apicontroller.APIHandler{
 		apicontroller.NewAPIHandler("", fiber.MethodPost, c.requestRestaurantRecommendation()),
 		apicontroller.NewAPIHandler("/:restaurantRecommendationRequestID/restaurants", fiber.MethodGet, c.listRecommendedRestaurants()),
+		apicontroller.NewAPIHandler("/api/recommendation/{restaurantRecommendationRequestID}/restaurants/select", fiber.MethodPost, c.selectRestaurantRecommendations()),
 	}
 }
 
@@ -101,4 +102,38 @@ func (c *RecommendationAPIController) listRecommendedRestaurants() fiber.Handler
 			NextCursor:             listRecommendedRestaurantsResult.NextCursor,
 		})
 	}
+}
+
+func (c *RecommendationAPIController) selectRestaurantRecommendations() fiber.Handler {
+	return func(ctx *fiber.Ctx) error {
+		restaurantRecommendationRequestID, err := ctx.ParamsInt("restaurantRecommendationRequestID")
+		if err != nil {
+			return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
+		}
+		request, err := parseRequestBody[SelectRestaurantRecommendationsRequest](ctx)
+		if err != nil {
+			return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
+		}
+
+		if _, err := c.restaurantRecommendationService.SelectRestaurantRecommendation(int64(restaurantRecommendationRequestID), request.RestaurantRecommendationIDs); err != nil {
+			return ctx.Status(fiber.StatusInternalServerError).SendString(err.Error())
+		}
+
+		return ctx.JSON(&SelectRestaurantRecommendationsResponse{})
+	}
+}
+
+func parseRequestBody[T any](ctx *fiber.Ctx) (*T, error) {
+	request := new(T)
+	if err := ctx.BodyParser(request); err != nil {
+		return nil, err
+	}
+
+	if v, ok := any(request).(Validator); ok {
+		if err := v.Validate(); err != nil {
+			return nil, err
+		}
+	}
+
+	return request, nil
 }

@@ -5,6 +5,10 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+type Validator interface {
+	Validate() error
+}
+
 type RequestRestaurantRecommendationRequest struct {
 	UserLocation *UserLocationRequest `json:"userLocation"`
 }
@@ -28,4 +32,8 @@ func (r *RequestRestaurantRecommendationRequest) Validate() error {
 	}
 
 	return nil
+}
+
+type SelectRestaurantRecommendationsRequest struct {
+	RestaurantRecommendationIDs []int64 `json:"restaurantRecommendationIDs"`
 }
