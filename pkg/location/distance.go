@@ -5,7 +5,7 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-func CalculateDistance(lat1, lon1, lat2, lon2 decimal.Decimal) decimal.Decimal {
+func CalculateDistanceInMeters(lat1, lon1, lat2, lon2 decimal.Decimal) decimal.Decimal {
 	// 지구 반지름 (미터 단위)
 	radius := 6371000.0
 

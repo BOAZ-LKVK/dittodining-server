@@ -9,7 +9,7 @@ import (
 var ErrRestaurantRecommendationRequestNotFound = errors.New("restaurant recommendation request not found")
 
 type RestaurantRecommendationRequestRepository interface {
-	Create(request *recommendation.RestaurantRecommendationRequest) (*recommendation.RestaurantRecommendationRequest, error)
+	Save(request *recommendation.RestaurantRecommendationRequest) (*recommendation.RestaurantRecommendationRequest, error)
 	FindByID(restaurantRecommendationRequestID int64) (*recommendation.RestaurantRecommendationRequest, error)
 }
 
@@ -21,7 +21,7 @@ type restaurantRecommendationRequestRepository struct {
 	db *gorm.DB
 }
 
-func (r *restaurantRecommendationRequestRepository) Create(request *recommendation.RestaurantRecommendationRequest) (*recommendation.RestaurantRecommendationRequest, error) {
+func (r *restaurantRecommendationRequestRepository) Save(request *recommendation.RestaurantRecommendationRequest) (*recommendation.RestaurantRecommendationRequest, error) {
 	result := r.db.Create(request)
 	if result.Error != nil {
 		return nil, result.Error

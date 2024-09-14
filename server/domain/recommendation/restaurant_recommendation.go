@@ -9,6 +9,18 @@ type RestaurantRecommendation struct {
 	DistanceInMeters                  decimal.Decimal
 }
 
+func NewRestaurantRecommendation(
+	restaurantRecommendationRequestID int64,
+	restaurantID int64,
+	distanceInMeters decimal.Decimal,
+) *RestaurantRecommendation {
+	return &RestaurantRecommendation{
+		RestaurantRecommendationRequestID: restaurantRecommendationRequestID,
+		RestaurantID:                      restaurantID,
+		DistanceInMeters:                  distanceInMeters,
+	}
+}
+
 func (r *RestaurantRecommendation) TableName() string {
 	return "restaurant_recommendation"
 }

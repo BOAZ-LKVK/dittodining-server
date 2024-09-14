@@ -3,6 +3,7 @@ package recommendation
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/BOAZ-LKVK/LKVK-server/pkg/location"
 	recommendation_domain "github.com/BOAZ-LKVK/LKVK-server/server/domain/recommendation"
 	restaurant_domain "github.com/BOAZ-LKVK/LKVK-server/server/domain/restaurant"
 	recommendation_repository "github.com/BOAZ-LKVK/LKVK-server/server/repository/recommendation"
@@ -59,12 +60,29 @@ func (s *restaurantRecommendationService) RequestRestaurantRecommendation(userID
 		// TODO: testablity를 위해 clock interface 개발 후 대체
 		now,
 	)
-	created, err := s.restaurantRecommendationRequestRepository.Create(recommendationRequest)
+	created, err := s.restaurantRecommendationRequestRepository.Save(recommendationRequest)
 	if err != nil {
 		return nil, err
 	}
 
-	// TODO: restaurantRecommendations 생성 로직 추가 - 미리 추천 데이터를 만들고 노출하는 구조
+	restaurantsOrderByRecommendationScoreDesc, err := s.restaurantRepository.FindAllOrderByRecommendationScoreDesc(10)
+
+	recommendations := make([]*recommendation_domain.RestaurantRecommendation, 0, len(restaurantsOrderByRecommendationScoreDesc))
+	for _, r := range restaurantsOrderByRecommendationScoreDesc {
+		distanceInMeters := location.CalculateDistanceInMeters(userLocation.Latitude, userLocation.Longitude, r.Latitude, r.Longitude)
+
+		recommendations = append(recommendations,
+			recommendation_domain.NewRestaurantRecommendation(
+				recommendationRequest.RestaurantRecommendationRequestID,
+				r.RestaurantID,
+				distanceInMeters,
+			),
+		)
+	}
+
+	if err := s.restaurantRecommendationRepository.SaveAll(recommendations); err != nil {
+		return nil, err
+	}
 
 	return &recommendation_model.RequestRestaurantRecommendationResult{
 		RestaurantRecommendationRequestID: created.RestaurantRecommendationRequestID,

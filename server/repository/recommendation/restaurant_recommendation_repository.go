@@ -8,6 +8,7 @@ import (
 type RestaurantRecommendationRepository interface {
 	FindAllByRestaurantRecommendationRequestID(restaurantRecommendationRequestID int64, cursorRestaurantRecommendationRequestID *int64, limit *int64) ([]*recommendation.RestaurantRecommendation, error)
 	FindAllByIDs(restaurantRecommendationIDs []int64) ([]*recommendation.RestaurantRecommendation, error)
+	SaveAll(recommendations []*recommendation.RestaurantRecommendation) error
 }
 
 func NewRestaurantRecommendationRepository(db *gorm.DB) RestaurantRecommendationRepository {
@@ -62,4 +63,13 @@ func (r *restaurantRecommendationRepository) FindAllByIDs(restaurantRecommendati
 	}
 
 	return recommendations, nil
+}
+
+func (r *restaurantRecommendationRepository) SaveAll(recommendations []*recommendation.RestaurantRecommendation) error {
+	result := r.db.Save(recommendations)
+	if result.Error != nil {
+		return result.Error
+	}
+
+	return nil
 }

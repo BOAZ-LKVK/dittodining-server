@@ -8,6 +8,7 @@ import (
 type RestaurantRepository interface {
 	FindByID(restaurantID int64) (*restaurant.Restaurant, error)
 	FindByIDs(restaurantIDs []int64) ([]*restaurant.Restaurant, error)
+	FindAllOrderByRecommendationScoreDesc(limit int) ([]*restaurant.Restaurant, error)
 }
 
 func NewRestaurantRepository(db *gorm.DB) RestaurantRepository {
@@ -36,6 +37,19 @@ func (r *restaurantRepository) FindByIDs(restaurantIDs []int64) ([]*restaurant.R
 	var existingRestaurants []*restaurant.Restaurant
 	result := r.db.
 		Where("restaurant_id IN ?", restaurantIDs).
+		Find(&existingRestaurants)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return existingRestaurants, nil
+}
+
+func (r *restaurantRepository) FindAllOrderByRecommendationScoreDesc(limit int) ([]*restaurant.Restaurant, error) {
+	var existingRestaurants []*restaurant.Restaurant
+	result := r.db.
+		Order("recommendation_score DESC").
+		Limit(limit).
 		Find(&existingRestaurants)
 	if result.Error != nil {
 		return nil, result.Error
