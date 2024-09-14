@@ -108,6 +108,8 @@ func (s *restaurantRecommendationService) ListRecommendedRestaurants(restaurantR
 		return nil, err
 	}
 
+	// TODO: if recommendations == nil -> 추천 데이터 더 추가하도록
+
 	restaurantIDs := lo.Map(recommendations, func(item *recommendation_domain.RestaurantRecommendation, index int) int64 {
 		return item.RestaurantID
 	})
