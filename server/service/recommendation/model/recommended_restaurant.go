@@ -1,22 +1,22 @@
 package model
 
 import (
-	"github.com/BOAZ-LKVK/LKVK-server/server/domain/restaurant"
-	model2 "github.com/BOAZ-LKVK/LKVK-server/server/service/restaurant/model"
+	restaurant_domain "github.com/BOAZ-LKVK/LKVK-server/server/domain/restaurant"
+	restaurant_model "github.com/BOAZ-LKVK/LKVK-server/server/service/restaurant/model"
 )
 
 type RecommendedRestaurant struct {
-	Restaurant RestaurantRecommendation `json:"restaurant"`
-	MenuItems  []*model2.RestaurantMenu `json:"menuItems"`
-	Review     model2.RestaurantReview  `json:"review"`
+	Restaurant RestaurantRecommendation           `json:"restaurant"`
+	MenuItems  []*restaurant_model.RestaurantMenu `json:"menuItems"`
+	Review     restaurant_model.RestaurantReview  `json:"review"`
 }
 
 type RestaurantRecommendation struct {
-	RestaurantID        int64                      `json:"restaurantId"`
-	Name                string                     `json:"name"`
-	Description         string                     `json:"description"`
-	PriceRangePerPerson string                     `json:"priceRangePerPerson"`
-	Distance            string                     `json:"distance"`
-	BusinessHours       []*restaurant.BusinessHour `json:"businessHours"`
-	RestaurantImageURLs []string                   `json:"restaurantImageUrls"`
+	RestaurantID        int64                             `json:"restaurantId"`
+	Name                string                            `json:"name"`
+	Description         string                            `json:"description"`
+	PriceRangePerPerson string                            `json:"priceRangePerPerson"`
+	Distance            string                            `json:"distance"`
+	BusinessHours       []*restaurant_domain.BusinessHour `json:"businessHours"`
+	RestaurantImageURLs []string                          `json:"restaurantImageUrls"`
 }

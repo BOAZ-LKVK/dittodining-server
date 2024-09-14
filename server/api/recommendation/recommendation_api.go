@@ -35,6 +35,7 @@ func (c *RecommendationAPIController) Handlers() []*apicontroller.APIHandler {
 		apicontroller.NewAPIHandler("", fiber.MethodPost, c.requestRestaurantRecommendation()),
 		apicontroller.NewAPIHandler("/:restaurantRecommendationRequestID/restaurants", fiber.MethodGet, c.listRecommendedRestaurants()),
 		apicontroller.NewAPIHandler("/api/recommendation/{restaurantRecommendationRequestID}/restaurants/select", fiber.MethodPost, c.selectRestaurantRecommendations()),
+		apicontroller.NewAPIHandler("/api/recommendation/{restaurantRecommendationRequestID}/results", fiber.MethodGet, c.getRestaurantRecommendationResult()),
 	}
 }
 
@@ -123,6 +124,25 @@ func (c *RecommendationAPIController) selectRestaurantRecommendations() fiber.Ha
 	}
 }
 
+func (c *RecommendationAPIController) getRestaurantRecommendationResult() fiber.Handler {
+	return func(ctx *fiber.Ctx) error {
+		restaurantRecommendationRequestID, err := ctx.ParamsInt("restaurantRecommendationRequestID")
+		if err != nil {
+			return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
+		}
+
+		result, err := c.restaurantRecommendationService.GetRestaurantRecommendationResult(int64(restaurantRecommendationRequestID))
+		if err != nil {
+			return ctx.Status(fiber.StatusInternalServerError).SendString(err.Error())
+		}
+
+		return ctx.JSON(&GetRestaurantRecommendationResponse{
+			Results: result.Results,
+		})
+	}
+}
+
+// TODO: refactor 적절한 곳으로 옮기기
 func parseRequestBody[T any](ctx *fiber.Ctx) (*T, error) {
 	request := new(T)
 	if err := ctx.BodyParser(request); err != nil {

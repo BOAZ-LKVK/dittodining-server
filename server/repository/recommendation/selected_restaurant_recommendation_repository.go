@@ -7,6 +7,7 @@ import (
 
 type SelectedRestaurantRecommendationRepository interface {
 	SaveAll(selectedRestaurantRecommendations []*recommendation_domain.SelectedRestaurantRecommendation) error
+	FindAllByRestaurantRecommendationRequestID(restaurantRecommendationRequestID int64) ([]*recommendation_domain.SelectedRestaurantRecommendation, error)
 }
 
 func NewSelectedRestaurantRecommendationRepository(db *gorm.DB) SelectedRestaurantRecommendationRepository {
@@ -24,4 +25,18 @@ func (r *selectedRestaurantRecommendationRepository) SaveAll(selectedRestaurantR
 	}
 
 	return nil
+}
+
+func (r *selectedRestaurantRecommendationRepository) FindAllByRestaurantRecommendationRequestID(restaurantRecommendationRequestID int64) ([]*recommendation_domain.SelectedRestaurantRecommendation, error) {
+	var selectedRestaurantRecommendations []*recommendation_domain.SelectedRestaurantRecommendation
+	result := r.db.
+		Where(recommendation_domain.SelectedRestaurantRecommendation{
+			RestaurantRecommendationRequestID: restaurantRecommendationRequestID,
+		}).
+		Find(&selectedRestaurantRecommendations)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return selectedRestaurantRecommendations, nil
 }

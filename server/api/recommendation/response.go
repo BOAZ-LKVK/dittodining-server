@@ -12,3 +12,7 @@ type ListRecommendedRestaurantsResponse struct {
 }
 
 type SelectRestaurantRecommendationsResponse struct{}
+
+type GetRestaurantRecommendationResponse struct {
+	Results []*model.RestaurantRecommendationResult `json:"results"`
+}

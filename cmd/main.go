@@ -23,6 +23,7 @@ func main() {
 			fiberfx.AsAPIController(recommendation_api.NewRecommendationAPIController),
 			recommendation.NewRestaurantRecommendationRepository,
 			recommendation.NewRestaurantRecommendationRequestRepository,
+			recommendation.NewSelectedRestaurantRecommendationRepository,
 			recommendation_service.NewRestaurantRecommendationService,
 			restaurant.NewRestaurantRepository,
 			restaurant.NewRestaurantMenuRepository,
