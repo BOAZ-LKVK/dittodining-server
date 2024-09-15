@@ -27,7 +27,7 @@ func NewRecommendationAPIController(
 }
 
 func (c *RecommendationAPIController) Pattern() string {
-	return "/recommendation"
+	return "/api/recommendation"
 }
 
 func (c *RecommendationAPIController) Handlers() []*apicontroller.APIHandler {
