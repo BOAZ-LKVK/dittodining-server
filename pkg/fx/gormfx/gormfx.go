@@ -29,7 +29,7 @@ func New(lc fx.Lifecycle, p Params) (Result, error) {
 	var dialector gorm.Dialector
 	switch p.Config.DBDriver {
 	case "mysql":
-		dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+		dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=UTC",
 			p.Config.DBUser, p.Config.DBPassword, p.Config.DBHost, p.Config.DBPort, p.Config.DBName,
 		)
 
