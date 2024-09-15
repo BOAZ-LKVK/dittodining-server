@@ -19,6 +19,7 @@ type Restaurant struct {
 	AverageScoreFromNaver decimal.Decimal
 	AverageScoreFromKakao decimal.Decimal
 	RestaurantImages      []RestaurantImage `gorm:"references:RestaurantID"`
+	TotalReviewCount      int64
 }
 
 func (r *Restaurant) TableName() string {

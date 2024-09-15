@@ -11,9 +11,9 @@ type Config struct {
 
 func parseConfig() *Config {
 	return &Config{
-		DBDriver:   "sqlite",
+		DBDriver:   "mysql",
 		DBUser:     "root",
-		DBPassword: "1234",
+		DBPassword: "password",
 		DBHost:     "localhost",
 		DBName:     "dittodining",
 		DBPort:     "3306",

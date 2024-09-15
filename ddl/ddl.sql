@@ -32,6 +32,7 @@ CREATE TABLE `restaurant`
     `recommendation_score`     DECIMAL(5, 2)  NOT NULL COMMENT '추천 점수',
     `average_score_from_naver` DECIMAL(5, 2)  NULL COMMENT '네이버 평균 평점',
     `average_score_from_kakao` DECIMAL(5, 2)  NULL COMMENT '카카오 평균 평점',
+    `total_review_count`       BIGINT         NOT NULL COMMENT '총 리뷰 수',
     `created_at`               DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '생성 일시',
     `updated_at`               DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정 일시',
     PRIMARY KEY (`restaurant_id`),
