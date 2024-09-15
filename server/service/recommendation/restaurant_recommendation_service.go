@@ -143,13 +143,7 @@ func (s *restaurantRecommendationService) ListRecommendedRestaurants(restaurantR
 		menuItems := menusByRestaurantID[recommendation.RestaurantID]
 		reviewItems := reviewsByRestaurantID[recommendation.RestaurantID]
 
-		// TODO: refactor review count는 조회 성능을 위해 restaurant에 저장하도록
-		totalCount, err := s.restaurantReviewRepository.CountByRestaurantID(recommendation.RestaurantID)
-		if err != nil {
-			return nil, err
-		}
-
-		recommendedRestaurantModel, err := makeRecommendedRestaurantModel(recommendation, restaurant, menuItems, reviewItems, totalCount)
+		recommendedRestaurantModel, err := makeRecommendedRestaurantModel(recommendation, restaurant, menuItems, reviewItems, restaurant.TotalReviewCount)
 		if err != nil {
 			return nil, err
 		}
@@ -254,18 +248,12 @@ func (s *restaurantRecommendationService) GetRestaurantRecommendationResult(rest
 		reviewItems := reviewsByRestaurantID[r.RestaurantID]
 		recommendation := restaurantRecommendationByID[r.RestaurantRecommendationID]
 
-		// TODO: refactor review count는 조회 성능을 위해 restaurant에 저장하도록
-		totalCount, err := s.restaurantReviewRepository.CountByRestaurantID(r.RestaurantID)
-		if err != nil {
-			return nil, err
-		}
-
 		recommendedRestaurantModel, err := makeRecommendedRestaurantModel(
 			recommendation,
 			restaurant,
 			menuItems,
 			reviewItems,
-			totalCount,
+			restaurant.TotalReviewCount,
 		)
 		if err != nil {
 			return nil, err
