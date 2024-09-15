@@ -143,7 +143,7 @@ func (s *restaurantRecommendationService) ListRecommendedRestaurants(restaurantR
 		menuItems := menusByRestaurantID[recommendation.RestaurantID]
 		reviewItems := reviewsByRestaurantID[recommendation.RestaurantID]
 
-		recommendedRestaurantModel, err := makeRecommendedRestaurantModel(recommendation, restaurant, menuItems, reviewItems, restaurant.TotalReviewCount)
+		recommendedRestaurantModel, err := makeRecommendedRestaurantModel(recommendation, restaurant, menuItems, reviewItems)
 		if err != nil {
 			return nil, err
 		}
@@ -253,7 +253,6 @@ func (s *restaurantRecommendationService) GetRestaurantRecommendationResult(rest
 			restaurant,
 			menuItems,
 			reviewItems,
-			restaurant.TotalReviewCount,
 		)
 		if err != nil {
 			return nil, err
@@ -276,7 +275,6 @@ func makeRecommendedRestaurantModel(
 	restaurant *restaurant_domain.Restaurant,
 	menuItems []*restaurant_domain.RestaurantMenu,
 	reviewItems []*restaurant_domain.RestaurantReview,
-	totalCount int64,
 ) (*recommendation_model.RecommendedRestaurant, error) {
 	var businessHours []*restaurant_domain.BusinessHour
 	if err := json.Unmarshal([]byte(restaurant.BusinessHoursJSON), &businessHours); err != nil {
@@ -311,13 +309,14 @@ func makeRecommendedRestaurantModel(
 
 	return &recommendation_model.RecommendedRestaurant{
 		Restaurant: recommendation_model.RestaurantRecommendation{
-			RestaurantID:        recommendation.RestaurantID,
-			Name:                restaurant.Name,
-			Description:         restaurant.Description,
-			PriceRangePerPerson: fmt.Sprintf("%s ~ %s", restaurant.MinimumPricePerPerson.String(), restaurant.MaximumPricePerPerson.String()),
-			Distance:            recommendation.DistanceInMeters.String(),
-			BusinessHours:       businessHours,
-			RestaurantImageURLs: restaurantImageURLs,
+			RestaurantRecommendationID: recommendation.RestaurantRecommendationID,
+			RestaurantID:               recommendation.RestaurantID,
+			Name:                       restaurant.Name,
+			Description:                restaurant.Description,
+			PriceRangePerPerson:        fmt.Sprintf("%s ~ %s", restaurant.MinimumPricePerPerson.String(), restaurant.MaximumPricePerPerson.String()),
+			Distance:                   recommendation.DistanceInMeters.String(),
+			BusinessHours:              businessHours,
+			RestaurantImageURLs:        restaurantImageURLs,
 		},
 		MenuItems: menuItemModels,
 		Review: restaurant_model.RestaurantReview{
@@ -332,7 +331,7 @@ func makeRecommendedRestaurantModel(
 				},
 			},
 			Reviews:    reviewModels,
-			TotalCount: totalCount,
+			TotalCount: restaurant.TotalReviewCount,
 		},
 	}, nil
 }

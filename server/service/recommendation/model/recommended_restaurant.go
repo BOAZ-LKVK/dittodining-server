@@ -12,11 +12,12 @@ type RecommendedRestaurant struct {
 }
 
 type RestaurantRecommendation struct {
-	RestaurantID        int64                             `json:"restaurantId"`
-	Name                string                            `json:"name"`
-	Description         string                            `json:"description"`
-	PriceRangePerPerson string                            `json:"priceRangePerPerson"`
-	Distance            string                            `json:"distance"`
-	BusinessHours       []*restaurant_domain.BusinessHour `json:"businessHours"`
-	RestaurantImageURLs []string                          `json:"restaurantImageUrls"`
+	RestaurantRecommendationID int64                             `json:"restaurantRecommendationId"`
+	RestaurantID               int64                             `json:"restaurantId"`
+	Name                       string                            `json:"name"`
+	Description                string                            `json:"description"`
+	PriceRangePerPerson        string                            `json:"priceRangePerPerson"`
+	Distance                   string                            `json:"distance"`
+	BusinessHours              []*restaurant_domain.BusinessHour `json:"businessHours"`
+	RestaurantImageURLs        []string                          `json:"restaurantImageUrls"`
 }
