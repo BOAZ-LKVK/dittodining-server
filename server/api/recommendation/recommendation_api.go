@@ -70,7 +70,7 @@ func (c *RecommendationAPIController) requestRestaurantRecommendation() fiber.Ha
 
 func (c *RecommendationAPIController) listRecommendedRestaurants() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
-		restaurantRecommendationRequestID, err := ctx.ParamsInt("restaurantRecommendationRequestID")
+		restaurantRecommendationRequestID, err := ctx.ParamsInt("restaurantRecommendationRequestId")
 		if err != nil {
 			return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
 		}
@@ -78,7 +78,7 @@ func (c *RecommendationAPIController) listRecommendedRestaurants() fiber.Handler
 		if limit == 0 {
 			return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
 		}
-		cursorRestaurantRecommendationIDQuery := ctx.Query("cursorRestaurantRecommendationID", "")
+		cursorRestaurantRecommendationIDQuery := ctx.Query("cursorRestaurantRecommendationId", "")
 		var cursorRestaurantRecommendationID *int64
 		if cursorRestaurantRecommendationIDQuery != "" {
 			parse, err := strconv.ParseInt(cursorRestaurantRecommendationIDQuery, 10, 64)
@@ -107,7 +107,7 @@ func (c *RecommendationAPIController) listRecommendedRestaurants() fiber.Handler
 
 func (c *RecommendationAPIController) selectRestaurantRecommendations() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
-		restaurantRecommendationRequestID, err := ctx.ParamsInt("restaurantRecommendationRequestID")
+		restaurantRecommendationRequestID, err := ctx.ParamsInt("restaurantRecommendationRequestId")
 		if err != nil {
 			return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
 		}
@@ -126,7 +126,7 @@ func (c *RecommendationAPIController) selectRestaurantRecommendations() fiber.Ha
 
 func (c *RecommendationAPIController) getRestaurantRecommendationResult() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
-		restaurantRecommendationRequestID, err := ctx.ParamsInt("restaurantRecommendationRequestID")
+		restaurantRecommendationRequestID, err := ctx.ParamsInt("restaurantRecommendationRequestId")
 		if err != nil {
 			return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
 		}

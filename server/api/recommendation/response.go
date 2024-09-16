@@ -3,7 +3,7 @@ package recommendation
 import "github.com/BOAZ-LKVK/LKVK-server/server/service/recommendation/model"
 
 type RequestRestaurantRecommendationResponse struct {
-	RestaurantRecommendationRequestID int64 `json:"restaurantRecommendationRequestID"`
+	RestaurantRecommendationRequestID int64 `json:"restaurantRecommendationRequestId"`
 }
 
 type ListRecommendedRestaurantsResponse struct {

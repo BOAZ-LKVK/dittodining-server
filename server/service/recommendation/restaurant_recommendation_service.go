@@ -174,7 +174,7 @@ func (s *restaurantRecommendationService) SelectRestaurantRecommendation(restaur
 		return nil, err
 	}
 	if len(recommendations) != len(restaurantRecommendationIDs) {
-		return nil, errors.New("not exist restaurantRecommendationID")
+		return nil, errors.New("not exist restaurantRecommendationId")
 	}
 
 	selectedRestaurantRecommendations := make([]*recommendation_domain.SelectedRestaurantRecommendation, 0, len(recommendations))
