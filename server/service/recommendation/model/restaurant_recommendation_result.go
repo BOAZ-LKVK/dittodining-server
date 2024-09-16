@@ -6,5 +6,5 @@ type GetRestaurantRecommendationResultResult struct {
 
 type RestaurantRecommendationResult struct {
 	RestaurantRecommendationID int64                  `json:"restaurantRecommendationId"`
-	Restaurant                 *RecommendedRestaurant `json:"restaurant"`
+	RecommendedRestaurant      *RecommendedRestaurant `json:"recommendedRestaurant"`
 }

@@ -280,7 +280,7 @@ func (s *restaurantRecommendationService) GetRestaurantRecommendationResult(rest
 
 		results = append(results, &recommendation_model.RestaurantRecommendationResult{
 			RestaurantRecommendationID: r.RestaurantRecommendationID,
-			Restaurant:                 recommendedRestaurantModel,
+			RecommendedRestaurant:      recommendedRestaurantModel,
 		})
 	}
 
