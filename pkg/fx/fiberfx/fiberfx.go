@@ -6,6 +6,7 @@ import (
 	"github.com/BOAZ-LKVK/LKVK-server/pkg/apicontroller"
 	"github.com/BOAZ-LKVK/LKVK-server/pkg/errorhandler"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 )
@@ -37,6 +38,9 @@ func New(lc fx.Lifecycle, p Params) (Result, error) {
 	app := fiber.New(fiber.Config{
 		ErrorHandler: errorhandler.NewFiberErrorHandler(p.Logger),
 	})
+
+	// CORS
+	app.Use(cors.New())
 
 	for _, c := range p.APIControllers {
 		p.Logger.Info(fmt.Sprintf("Registering API controller: %s", c.Pattern()))
