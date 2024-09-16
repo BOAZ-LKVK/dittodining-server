@@ -27,28 +27,31 @@ type RestaurantRecommendationService interface {
 func NewRestaurantRecommendationService(
 	restaurantRecommendationRequestRepository recommendation_repository.RestaurantRecommendationRequestRepository,
 	restaurantRecommendationRepository recommendation_repository.RestaurantRecommendationRepository,
+	selectedRestaurantRecommendationRepository recommendation_repository.SelectedRestaurantRecommendationRepository,
 	restaurantRepository restaurant_repository.RestaurantRepository,
 	restaurantMenuRepository restaurant_repository.RestaurantMenuRepository,
 	restaurantReviewRepository restaurant_repository.RestaurantReviewRepository,
-	selectedRestaurantRecommendationRepository recommendation_repository.SelectedRestaurantRecommendationRepository,
+	restaurantImageRepository restaurant_repository.RestaurantImageRepository,
 ) RestaurantRecommendationService {
 	return &restaurantRecommendationService{
 		restaurantRecommendationRequestRepository:  restaurantRecommendationRequestRepository,
 		restaurantRecommendationRepository:         restaurantRecommendationRepository,
+		selectedRestaurantRecommendationRepository: selectedRestaurantRecommendationRepository,
 		restaurantRepository:                       restaurantRepository,
 		restaurantMenuRepository:                   restaurantMenuRepository,
 		restaurantReviewRepository:                 restaurantReviewRepository,
-		selectedRestaurantRecommendationRepository: selectedRestaurantRecommendationRepository,
+		restaurantImageRepository:                  restaurantImageRepository,
 	}
 }
 
 type restaurantRecommendationService struct {
 	restaurantRecommendationRequestRepository  recommendation_repository.RestaurantRecommendationRequestRepository
 	restaurantRecommendationRepository         recommendation_repository.RestaurantRecommendationRepository
+	selectedRestaurantRecommendationRepository recommendation_repository.SelectedRestaurantRecommendationRepository
 	restaurantRepository                       restaurant_repository.RestaurantRepository
 	restaurantMenuRepository                   restaurant_repository.RestaurantMenuRepository
 	restaurantReviewRepository                 restaurant_repository.RestaurantReviewRepository
-	selectedRestaurantRecommendationRepository recommendation_repository.SelectedRestaurantRecommendationRepository
+	restaurantImageRepository                  restaurant_repository.RestaurantImageRepository
 }
 
 func (s *restaurantRecommendationService) RequestRestaurantRecommendation(userID *int64, userLocation recommendation_domain.UserLocation, now time.Time) (*recommendation_model.RequestRestaurantRecommendationResult, error) {
@@ -122,6 +125,14 @@ func (s *restaurantRecommendationService) ListRecommendedRestaurants(restaurantR
 		return item.RestaurantID, item
 	})
 
+	restaurantImages, err := s.restaurantImageRepository.FindAllByRestaurantIDs(restaurantIDs)
+	if err != nil {
+		return nil, err
+	}
+	restaurantImagesByRestaurantID := lo.GroupBy(restaurantImages, func(item *restaurant_domain.RestaurantImage) int64 {
+		return item.RestaurantID
+	})
+
 	menus, err := s.restaurantMenuRepository.FindAllByRestaurantIDs(restaurantIDs)
 	if err != nil {
 		return nil, err
@@ -142,8 +153,9 @@ func (s *restaurantRecommendationService) ListRecommendedRestaurants(restaurantR
 		restaurant := restaurantByID[recommendation.RestaurantID]
 		menuItems := menusByRestaurantID[recommendation.RestaurantID]
 		reviewItems := reviewsByRestaurantID[recommendation.RestaurantID]
+		restaurantImageItems := restaurantImagesByRestaurantID[recommendation.RestaurantID]
 
-		recommendedRestaurantModel, err := makeRecommendedRestaurantModel(recommendation, restaurant, menuItems, reviewItems)
+		recommendedRestaurantModel, err := makeRecommendedRestaurantModel(recommendation, restaurant, menuItems, reviewItems, restaurantImageItems)
 		if err != nil {
 			return nil, err
 		}
@@ -207,9 +219,16 @@ func (s *restaurantRecommendationService) GetRestaurantRecommendationResult(rest
 	if err != nil {
 		return nil, err
 	}
-
 	restaurantByID := lo.SliceToMap(restaurants, func(item *restaurant_domain.Restaurant) (int64, *restaurant_domain.Restaurant) {
 		return item.RestaurantID, item
+	})
+
+	restaurantImages, err := s.restaurantImageRepository.FindAllByRestaurantIDs(restaurantIDs)
+	if err != nil {
+		return nil, err
+	}
+	restaurantImagesByRestaurantID := lo.GroupBy(restaurantImages, func(item *restaurant_domain.RestaurantImage) int64 {
+		return item.RestaurantID
 	})
 
 	menus, err := s.restaurantMenuRepository.FindAllByRestaurantIDs(restaurantIDs)
@@ -247,12 +266,14 @@ func (s *restaurantRecommendationService) GetRestaurantRecommendationResult(rest
 		menuItems := menusByRestaurantID[r.RestaurantID]
 		reviewItems := reviewsByRestaurantID[r.RestaurantID]
 		recommendation := restaurantRecommendationByID[r.RestaurantRecommendationID]
+		restaurantImageItems := restaurantImagesByRestaurantID[recommendation.RestaurantID]
 
 		recommendedRestaurantModel, err := makeRecommendedRestaurantModel(
 			recommendation,
 			restaurant,
 			menuItems,
 			reviewItems,
+			restaurantImageItems,
 		)
 		if err != nil {
 			return nil, err
@@ -275,6 +296,7 @@ func makeRecommendedRestaurantModel(
 	restaurant *restaurant_domain.Restaurant,
 	menuItems []*restaurant_domain.RestaurantMenu,
 	reviewItems []*restaurant_domain.RestaurantReview,
+	restaurantImages []*restaurant_domain.RestaurantImage,
 ) (*recommendation_model.RecommendedRestaurant, error) {
 	var businessHours []*restaurant_domain.BusinessHour
 	if err := json.Unmarshal([]byte(restaurant.BusinessHoursJSON), &businessHours); err != nil {
@@ -282,7 +304,7 @@ func makeRecommendedRestaurantModel(
 	}
 
 	restaurantImageURLs := make([]string, 0)
-	for _, image := range restaurant.RestaurantImages {
+	for _, image := range restaurantImages {
 		restaurantImageURLs = append(restaurantImageURLs, image.ImageURL)
 	}
 

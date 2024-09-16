@@ -28,6 +28,7 @@ func main() {
 			restaurant.NewRestaurantRepository,
 			restaurant.NewRestaurantMenuRepository,
 			restaurant.NewRestaurantReviewRepository,
+			restaurant.NewRestaurantImageRepository,
 		),
 		fiberfx.Module,
 		gormfx.Module,

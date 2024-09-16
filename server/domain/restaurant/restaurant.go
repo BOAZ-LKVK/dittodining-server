@@ -18,7 +18,6 @@ type Restaurant struct {
 	RecommendationScore   decimal.Decimal
 	AverageScoreFromNaver decimal.Decimal
 	AverageScoreFromKakao decimal.Decimal
-	RestaurantImages      []RestaurantImage `gorm:"references:RestaurantID"`
 	TotalReviewCount      int64
 }
 
