@@ -3,6 +3,7 @@ package model
 import (
 	restaurant_domain "github.com/BOAZ-LKVK/LKVK-server/server/domain/restaurant"
 	restaurant_model "github.com/BOAZ-LKVK/LKVK-server/server/service/restaurant/model"
+	"github.com/shopspring/decimal"
 )
 
 type RecommendedRestaurant struct {
@@ -16,8 +17,10 @@ type RestaurantRecommendation struct {
 	RestaurantID               int64                             `json:"restaurantId"`
 	Name                       string                            `json:"name"`
 	Description                string                            `json:"description"`
+	MaximumPricePerPerson      decimal.Decimal                   `json:"maximumPricePerPerson"`
+	MinimumPricePerPerson      decimal.Decimal                   `json:"minimumPricePerPerson"`
 	PriceRangePerPerson        string                            `json:"priceRangePerPerson"`
-	Distance                   string                            `json:"distance"`
+	DistanceInMeters           decimal.Decimal                   `json:"distanceInMeters"`
 	BusinessHours              []*restaurant_domain.BusinessHour `json:"businessHours"`
 	RestaurantImageURLs        []string                          `json:"restaurantImageUrls"`
 }

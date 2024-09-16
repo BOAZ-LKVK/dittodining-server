@@ -2,7 +2,6 @@ package recommendation
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/BOAZ-LKVK/LKVK-server/pkg/location"
 	recommendation_domain "github.com/BOAZ-LKVK/LKVK-server/server/domain/recommendation"
 	restaurant_domain "github.com/BOAZ-LKVK/LKVK-server/server/domain/restaurant"
@@ -335,8 +334,9 @@ func makeRecommendedRestaurantModel(
 			RestaurantID:               recommendation.RestaurantID,
 			Name:                       restaurant.Name,
 			Description:                restaurant.Description,
-			PriceRangePerPerson:        fmt.Sprintf("%s ~ %s", restaurant.MinimumPricePerPerson.String(), restaurant.MaximumPricePerPerson.String()),
-			Distance:                   recommendation.DistanceInMeters.String(),
+			MinimumPricePerPerson:      restaurant.MinimumPricePerPerson,
+			MaximumPricePerPerson:      restaurant.MaximumPricePerPerson,
+			DistanceInMeters:           recommendation.DistanceInMeters,
 			BusinessHours:              businessHours,
 			RestaurantImageURLs:        restaurantImageURLs,
 		},
