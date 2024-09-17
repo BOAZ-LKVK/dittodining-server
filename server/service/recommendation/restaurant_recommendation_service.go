@@ -302,7 +302,7 @@ func makeRecommendedRestaurantModel(
 		return nil, errors.Wrap(err, "failed to unmarshal business hours")
 	}
 
-	restaurantImageURLs := make([]string, 0)
+	restaurantImageURLs := make([]string, 0, len(restaurantImages))
 	for _, image := range restaurantImages {
 		restaurantImageURLs = append(restaurantImageURLs, image.ImageURL)
 	}
@@ -313,7 +313,7 @@ func makeRecommendedRestaurantModel(
 			RestaurantMenuID: item.RestaurantMenuID,
 			Name:             item.Name,
 			Description:      item.Description,
-			Price:            item.Price.IntPart(),
+			Price:            item.Price,
 		})
 	}
 
@@ -345,11 +345,11 @@ func makeRecommendedRestaurantModel(
 			Statistics: &restaurant_model.RestaurantReviewStatistics{
 				Kakao: &restaurant_model.RestaurantReviewKakaoStatistics{
 					AverageScore: restaurant.AverageScoreFromKakao,
-					Count:        int64(len(reviewItems)),
+					Count:        restaurant.TotalReviewCountFromKakao,
 				},
 				Naver: &restaurant_model.RestaurantReviewNaverStatistics{
 					AverageScore: restaurant.AverageScoreFromNaver,
-					Count:        int64(len(reviewItems)),
+					Count:        restaurant.TotalReviewCountFromNaver,
 				},
 			},
 			Reviews:    reviewModels,

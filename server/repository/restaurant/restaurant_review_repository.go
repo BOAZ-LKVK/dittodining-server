@@ -6,7 +6,9 @@ import (
 )
 
 type RestaurantReviewRepository interface {
+	// TODO: limit 추가
 	FindAllByRestaurantID(restaurantID int64) ([]*restaurant.RestaurantReview, error)
+	// TODO: limit 추가
 	FindAllByRestaurantIDs(restaurantIDs []int64) ([]*restaurant.RestaurantReview, error)
 	CountByRestaurantID(restaurantID int64) (int64, error)
 }

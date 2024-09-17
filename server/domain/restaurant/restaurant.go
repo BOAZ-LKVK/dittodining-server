@@ -14,11 +14,13 @@ type Restaurant struct {
 	Longitude             decimal.Decimal
 	Latitude              decimal.Decimal
 	// BusinessHoursJSON is BusinessHour structs in JSON format
-	BusinessHoursJSON     string
-	RecommendationScore   decimal.Decimal
-	AverageScoreFromNaver decimal.Decimal
-	AverageScoreFromKakao decimal.Decimal
-	TotalReviewCount      int64
+	BusinessHoursJSON         string
+	RecommendationScore       decimal.Decimal
+	AverageScoreFromNaver     decimal.Decimal
+	TotalReviewCountFromNaver int64
+	TotalReviewCountFromKakao int64
+	AverageScoreFromKakao     decimal.Decimal
+	TotalReviewCount          int64
 }
 
 func (r *Restaurant) TableName() string {
