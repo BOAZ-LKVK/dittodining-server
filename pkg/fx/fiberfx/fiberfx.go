@@ -40,7 +40,14 @@ func New(lc fx.Lifecycle, p Params) (Result, error) {
 	})
 
 	// CORS
-	app.Use(cors.New())
+	app.Use(cors.New(
+		cors.Config{
+			AllowOrigins:     p.Config.CORSAllowOrigins,
+			AllowMethods:     p.Config.CORSAllowMethods,
+			AllowHeaders:     p.Config.CORSAllowHeaders,
+			AllowCredentials: p.Config.CORSAllowCredentials,
+		},
+	))
 
 	for _, c := range p.APIControllers {
 		p.Logger.Info(fmt.Sprintf("Registering API controller: %s", c.Pattern()))
