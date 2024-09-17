@@ -4,14 +4,14 @@ USE `dittodining`;
 
 CREATE TABLE `restaurant`
 (
-    `restaurant_id`            BIGINT         NOT NULL AUTO_INCREMENT COMMENT '음식점 ID',
-    `name`                     VARCHAR(255)   NOT NULL COMMENT '음식점 이름',
-    `address`                  VARCHAR(1024)  NOT NULL COMMENT '음식점 주소',
-    `description`              TEXT           NOT NULL COMMENT '음식점 한줄 소개',
-    `maximum_price_per_person` DECIMAL(11, 2) NOT NULL COMMENT '1인당 최대 가격대',
-    `minimum_price_per_person` DECIMAL(11, 2) NOT NULL COMMENT '1인당 최소 가격대',
-    `latitude`                 DECIMAL(11, 8) NOT NULL COMMENT '위도',            -- TODO: 위치 기반 스캔을 위해 SPATIAL INDEX가 필요할 수도 있음
-    `longitude`                DECIMAL(11, 8) NOT NULL COMMENT '경도',            -- TODO: 위치 기반 스캔을 위해 SPATIAL INDEX가 필요할 수도 있음
+    `restaurant_id`                 BIGINT         NOT NULL AUTO_INCREMENT COMMENT '음식점 ID',
+    `name`                          VARCHAR(255)   NOT NULL COMMENT '음식점 이름',
+    `address`                       VARCHAR(1024)  NOT NULL COMMENT '음식점 주소',
+    `description`                   TEXT           NOT NULL COMMENT '음식점 한줄 소개',
+    `maximum_price_per_person`      DECIMAL(11, 2) NOT NULL COMMENT '1인당 최대 가격대',
+    `minimum_price_per_person`      DECIMAL(11, 2) NOT NULL COMMENT '1인당 최소 가격대',
+    `latitude`                      DECIMAL(11, 8) NOT NULL COMMENT '위도',            -- TODO: 위치 기반 스캔을 위해 SPATIAL INDEX가 필요할 수도 있음
+    `longitude`                     DECIMAL(11, 8) NOT NULL COMMENT '경도',            -- TODO: 위치 기반 스캔을 위해 SPATIAL INDEX가 필요할 수도 있음
     /* business_hours_json 예시
     [
 	    {
@@ -28,13 +28,15 @@ CREATE TABLE `restaurant`
         },
     ]
      */
-    `business_hours_json`      JSON           NOT NULL COMMENT '영업 시간 목록 JSON', -- BusinessHour 객체의 JSON
-    `recommendation_score`     DECIMAL(5, 2)  NOT NULL COMMENT '추천 점수',
-    `average_score_from_naver` DECIMAL(5, 2)  NULL COMMENT '네이버 평균 평점',
-    `average_score_from_kakao` DECIMAL(5, 2)  NULL COMMENT '카카오 평균 평점',
-    `total_review_count`       BIGINT         NOT NULL COMMENT '총 리뷰 수',
-    `created_at`               DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '생성 일시',
-    `updated_at`               DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정 일시',
+    `business_hours_json`           JSON           NOT NULL COMMENT '영업 시간 목록 JSON', -- BusinessHour 객체의 JSON
+    `recommendation_score`          DECIMAL(5, 2)  NOT NULL COMMENT '추천 점수',
+    `average_score_from_naver`      DECIMAL(5, 2)  NULL COMMENT '네이버 평균 평점',
+    `total_review_count_from_naver` BIGINT         NOT NULL COMMENT '네이버 총 리뷰 수',
+    `average_score_from_kakao`      DECIMAL(5, 2)  NULL COMMENT '카카오 평균 평점',
+    `total_review_count_from_kakao` BIGINT         NOT NULL COMMENT '카카오 총 리뷰 수',
+    `total_review_count`            BIGINT         NOT NULL COMMENT '총 리뷰 수',
+    `created_at`                    DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '생성 일시',
+    `updated_at`                    DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정 일시',
     PRIMARY KEY (`restaurant_id`),
     KEY `idx_restaurant_m1` (`created_at`),
     KEY `idx_restaurant_m2` (`updated_at`),
