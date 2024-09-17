@@ -4,6 +4,7 @@ import (
 	"github.com/BOAZ-LKVK/LKVK-server/pkg/fx/fiberfx"
 	"github.com/BOAZ-LKVK/LKVK-server/pkg/fx/gormfx"
 	"github.com/BOAZ-LKVK/LKVK-server/pkg/fx/zapfx"
+	"github.com/BOAZ-LKVK/LKVK-server/server/api"
 	recommendation_api "github.com/BOAZ-LKVK/LKVK-server/server/api/recommendation"
 	"github.com/BOAZ-LKVK/LKVK-server/server/repository/recommendation"
 	"github.com/BOAZ-LKVK/LKVK-server/server/repository/restaurant"
@@ -20,6 +21,7 @@ func main() {
 			zapfx.NewZapLogger,
 		),
 		fx.Provide(
+			fiberfx.AsAPIController(api.NewHomeAPIController),
 			fiberfx.AsAPIController(recommendation_api.NewRecommendationAPIController),
 			recommendation.NewRestaurantRecommendationRepository,
 			recommendation.NewRestaurantRecommendationRequestRepository,
