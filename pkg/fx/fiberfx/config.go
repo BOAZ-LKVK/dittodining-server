@@ -14,6 +14,6 @@ func parseConfig() *Config {
 		CORSAllowOrigins:     "*",
 		CORSAllowMethods:     "GET,POST,HEAD,PUT,DELETE,PATCH",
 		CORSAllowHeaders:     "*",
-		CORSAllowCredentials: true,
+		CORSAllowCredentials: false,
 	}
 }
