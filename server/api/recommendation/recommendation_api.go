@@ -33,9 +33,9 @@ func (c *RecommendationAPIController) Pattern() string {
 func (c *RecommendationAPIController) Handlers() []*apicontroller.APIHandler {
 	return []*apicontroller.APIHandler{
 		apicontroller.NewAPIHandler("", fiber.MethodPost, c.requestRestaurantRecommendation()),
-		apicontroller.NewAPIHandler("/:restaurantRecommendationRequestID/restaurants", fiber.MethodGet, c.listRecommendedRestaurants()),
-		apicontroller.NewAPIHandler("/:restaurantRecommendationRequestID/restaurants/select", fiber.MethodPost, c.selectRestaurantRecommendations()),
-		apicontroller.NewAPIHandler("/:restaurantRecommendationRequestID/result", fiber.MethodGet, c.getRestaurantRecommendationResult()),
+		apicontroller.NewAPIHandler("/:restaurantRecommendationRequestId/restaurants", fiber.MethodGet, c.listRecommendedRestaurants()),
+		apicontroller.NewAPIHandler("/:restaurantRecommendationRequestId/restaurants/select", fiber.MethodPost, c.selectRestaurantRecommendations()),
+		apicontroller.NewAPIHandler("/:restaurantRecommendationRequestId/result", fiber.MethodGet, c.getRestaurantRecommendationResult()),
 	}
 }
 
