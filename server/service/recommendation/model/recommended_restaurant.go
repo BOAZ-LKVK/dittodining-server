@@ -17,6 +17,7 @@ type RestaurantRecommendation struct {
 	RestaurantID               int64                             `json:"restaurantId"`
 	Name                       string                            `json:"name"`
 	Description                string                            `json:"description"`
+	Location                   Location                          `json:"location"`
 	MaximumPricePerPerson      decimal.Decimal                   `json:"maximumPricePerPerson"`
 	MinimumPricePerPerson      decimal.Decimal                   `json:"minimumPricePerPerson"`
 	PriceRangePerPerson        string                            `json:"priceRangePerPerson"`
