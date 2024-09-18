@@ -3,8 +3,11 @@ package recommendation
 import (
 	"github.com/BOAZ-LKVK/LKVK-server/pkg/apicontroller"
 	"github.com/BOAZ-LKVK/LKVK-server/server/domain/recommendation"
+	recommendation_repository "github.com/BOAZ-LKVK/LKVK-server/server/repository/recommendation"
+	restaurant_repository "github.com/BOAZ-LKVK/LKVK-server/server/repository/restaurant"
 	recommendation_service "github.com/BOAZ-LKVK/LKVK-server/server/service/recommendation"
 	"github.com/gofiber/fiber/v2"
+	"github.com/pkg/errors"
 	"github.com/samber/lo"
 	"go.uber.org/zap"
 	"strconv"
@@ -152,6 +155,14 @@ func (c *RecommendationAPIController) getRestaurantRecommendation() fiber.Handle
 
 		result, err := c.restaurantRecommendationService.GetRestaurantRecommendation(int64(restaurantRecommendationID))
 		if err != nil {
+			if errors.Is(err, restaurant_repository.ErrRestaurantNotFound) {
+				return ctx.Status(fiber.StatusNotFound).SendString(err.Error())
+			}
+
+			if errors.Is(err, recommendation_repository.ErrRestaurantRecommendationNotFound) {
+				return ctx.Status(fiber.StatusNotFound).SendString(err.Error())
+			}
+
 			return ctx.Status(fiber.StatusInternalServerError).SendString(err.Error())
 		}
 
