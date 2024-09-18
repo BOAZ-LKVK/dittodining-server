@@ -2,8 +2,11 @@ package restaurant
 
 import (
 	"github.com/BOAZ-LKVK/LKVK-server/server/domain/restaurant"
+	"github.com/pkg/errors"
 	"gorm.io/gorm"
 )
+
+var ErrRestaurantNotFound = errors.New("restaurant not found")
 
 type RestaurantRepository interface {
 	FindByID(restaurantID int64) (*restaurant.Restaurant, error)
@@ -27,6 +30,10 @@ func (r *restaurantRepository) FindByID(restaurantID int64) (*restaurant.Restaur
 		}).
 		Find(&existingRestaurant)
 	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, ErrRestaurantNotFound
+		}
+
 		return nil, result.Error
 	}
 

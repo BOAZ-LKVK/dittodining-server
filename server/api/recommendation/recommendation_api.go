@@ -36,6 +36,7 @@ func (c *RecommendationAPIController) Handlers() []*apicontroller.APIHandler {
 		apicontroller.NewAPIHandler("/request/:restaurantRecommendationRequestId/restaurants", fiber.MethodGet, c.listRecommendedRestaurants()),
 		apicontroller.NewAPIHandler("/request/:restaurantRecommendationRequestId/restaurants/select", fiber.MethodPost, c.selectRestaurantRecommendations()),
 		apicontroller.NewAPIHandler("/request/:restaurantRecommendationRequestId/result", fiber.MethodGet, c.getRestaurantRecommendationResult()),
+		apicontroller.NewAPIHandler("/recommendations/:restaurantRecommendationId", fiber.MethodPost, c.getRestaurantRecommendation()),
 	}
 }
 
@@ -136,8 +137,26 @@ func (c *RecommendationAPIController) getRestaurantRecommendationResult() fiber.
 			return ctx.Status(fiber.StatusInternalServerError).SendString(err.Error())
 		}
 
-		return ctx.JSON(&GetRestaurantRecommendationResponse{
+		return ctx.JSON(&GetRestaurantRecommendationResultResponse{
 			Results: result.Results,
+		})
+	}
+}
+
+func (c *RecommendationAPIController) getRestaurantRecommendation() fiber.Handler {
+	return func(ctx *fiber.Ctx) error {
+		restaurantRecommendationID, err := ctx.ParamsInt("restaurantRecommendationId")
+		if err != nil {
+			return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
+		}
+
+		result, err := c.restaurantRecommendationService.GetRestaurantRecommendation(int64(restaurantRecommendationID))
+		if err != nil {
+			return ctx.Status(fiber.StatusInternalServerError).SendString(err.Error())
+		}
+
+		return ctx.JSON(&GetRestaurantRecommendationResponse{
+			Recommendation: result.RecommendedRestaurant,
 		})
 	}
 }

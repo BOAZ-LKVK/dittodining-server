@@ -2,12 +2,16 @@ package recommendation
 
 import (
 	"github.com/BOAZ-LKVK/LKVK-server/server/domain/recommendation"
+	"github.com/pkg/errors"
 	"gorm.io/gorm"
 )
+
+var ErrRestaurantRecommendationNotFound = errors.New("restaurant recommendation not found")
 
 type RestaurantRecommendationRepository interface {
 	FindAllByRestaurantRecommendationRequestID(restaurantRecommendationRequestID int64, cursorRestaurantRecommendationRequestID *int64, limit *int64) ([]*recommendation.RestaurantRecommendation, error)
 	FindAllByIDs(restaurantRecommendationIDs []int64) ([]*recommendation.RestaurantRecommendation, error)
+	FindByID(restaurantRecommendationID int64) (*recommendation.RestaurantRecommendation, error)
 	SaveAll(recommendations []*recommendation.RestaurantRecommendation) error
 }
 
@@ -63,6 +67,25 @@ func (r *restaurantRecommendationRepository) FindAllByIDs(restaurantRecommendati
 	}
 
 	return recommendations, nil
+}
+
+func (r *restaurantRecommendationRepository) FindByID(restaurantRecommendationID int64) (*recommendation.RestaurantRecommendation, error) {
+	var existingRecommendation recommendation.RestaurantRecommendation
+
+	result := r.db.
+		Where(&recommendation.RestaurantRecommendation{
+			RestaurantRecommendationID: restaurantRecommendationID,
+		}).
+		First(&existingRecommendation)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, ErrRestaurantRecommendationNotFound
+		}
+
+		return nil, result.Error
+	}
+
+	return &existingRecommendation, nil
 }
 
 func (r *restaurantRecommendationRepository) SaveAll(recommendations []*recommendation.RestaurantRecommendation) error {

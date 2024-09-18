@@ -13,6 +13,10 @@ type ListRecommendedRestaurantsResponse struct {
 
 type SelectRestaurantRecommendationsResponse struct{}
 
-type GetRestaurantRecommendationResponse struct {
+type GetRestaurantRecommendationResultResponse struct {
 	Results []*model.RestaurantRecommendationResult `json:"results"`
+}
+
+type GetRestaurantRecommendationResponse struct {
+	Recommendation *model.RecommendedRestaurant `json:"recommendation"`
 }

@@ -21,6 +21,7 @@ type RestaurantRecommendationService interface {
 	ListRecommendedRestaurants(restaurantRecommendationRequestID int64, cursorRestaurantRecommendationID *int64, limit *int64) (*recommendation_model.ListRecommendedRestaurantsResult, error)
 	SelectRestaurantRecommendation(restaurantRecommendationRequestID int64, restaurantRecommendationIDs []int64) (*recommendation_model.SelectRestaurantRecommendationResult, error)
 	GetRestaurantRecommendationResult(restaurantRecommendationRequestID int64) (*recommendation_model.GetRestaurantRecommendationResultResult, error)
+	GetRestaurantRecommendation(restaurantRecommendationID int64) (*recommendation_model.GetRestaurantRecommendationResult, error)
 }
 
 func NewRestaurantRecommendationService(
@@ -286,6 +287,42 @@ func (s *restaurantRecommendationService) GetRestaurantRecommendationResult(rest
 
 	return &recommendation_model.GetRestaurantRecommendationResultResult{
 		Results: results,
+	}, nil
+}
+
+func (s *restaurantRecommendationService) GetRestaurantRecommendation(restaurantRecommendationID int64) (*recommendation_model.GetRestaurantRecommendationResult, error) {
+	existingRecommendation, err := s.restaurantRecommendationRepository.FindByID(restaurantRecommendationID)
+	if err != nil {
+		return nil, err
+	}
+
+	restaurant, err := s.restaurantRepository.FindByID(existingRecommendation.RestaurantID)
+	if err != nil {
+		return nil, err
+	}
+
+	menuItems, err := s.restaurantMenuRepository.FindAllByRestaurantID(existingRecommendation.RestaurantID)
+	if err != nil {
+		return nil, err
+	}
+
+	reviewItems, err := s.restaurantReviewRepository.FindAllByRestaurantID(existingRecommendation.RestaurantID)
+	if err != nil {
+		return nil, err
+	}
+
+	restaurantImageItems, err := s.restaurantImageRepository.FindAllByRestaurantID(existingRecommendation.RestaurantID)
+	if err != nil {
+		return nil, err
+	}
+
+	recommendedRestaurantModel, err := makeRecommendedRestaurantModel(existingRecommendation, restaurant, menuItems, reviewItems, restaurantImageItems)
+	if err != nil {
+		return nil, err
+	}
+
+	return &recommendation_model.GetRestaurantRecommendationResult{
+		RecommendedRestaurant: recommendedRestaurantModel,
 	}, nil
 }
 
