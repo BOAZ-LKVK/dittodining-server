@@ -39,7 +39,7 @@ func (c *RecommendationAPIController) Handlers() []*apicontroller.APIHandler {
 		apicontroller.NewAPIHandler("/request/:restaurantRecommendationRequestId/restaurants", fiber.MethodGet, c.listRecommendedRestaurants()),
 		apicontroller.NewAPIHandler("/request/:restaurantRecommendationRequestId/restaurants/select", fiber.MethodPost, c.selectRestaurantRecommendations()),
 		apicontroller.NewAPIHandler("/request/:restaurantRecommendationRequestId/result", fiber.MethodGet, c.getRestaurantRecommendationResult()),
-		apicontroller.NewAPIHandler("/recommendations/:restaurantRecommendationId", fiber.MethodPost, c.getRestaurantRecommendation()),
+		apicontroller.NewAPIHandler("/recommendations/:restaurantRecommendationId", fiber.MethodGet, c.getRestaurantRecommendation()),
 	}
 }
 
