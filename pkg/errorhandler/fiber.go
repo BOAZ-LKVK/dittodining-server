@@ -1,9 +1,10 @@
 package errorhandler
 
 import (
-	"errors"
 	"fmt"
+	"github.com/BOAZ-LKVK/LKVK-server/pkg/customerrors"
 	"github.com/gofiber/fiber/v2"
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
 
@@ -28,6 +29,12 @@ func NewFiberErrorHandler(logger *zap.Logger) fiber.ErrorHandler {
 		if errors.As(err, &e) {
 			code = e.Code
 			message = e.Message
+		}
+
+		var applicationError *customerrors.ApplicationError
+		if errors.As(err, &applicationError) {
+			code = applicationError.Code
+			message = applicationError.Err.Error()
 		}
 
 		return ctx.Status(code).JSON(ErrorResponse{
