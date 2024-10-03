@@ -2,6 +2,7 @@ package recommendation
 
 import (
 	"github.com/BOAZ-LKVK/LKVK-server/pkg/apicontroller"
+	"github.com/BOAZ-LKVK/LKVK-server/pkg/customerrors"
 	"github.com/BOAZ-LKVK/LKVK-server/server/domain/recommendation"
 	recommendation_repository "github.com/BOAZ-LKVK/LKVK-server/server/repository/recommendation"
 	restaurant_repository "github.com/BOAZ-LKVK/LKVK-server/server/repository/restaurant"
@@ -47,11 +48,19 @@ func (c *RecommendationAPIController) requestRestaurantRecommendation() fiber.Ha
 	return func(ctx *fiber.Ctx) error {
 		request := new(RequestRestaurantRecommendationRequest)
 		if err := ctx.BodyParser(request); err != nil {
-			return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
+			return &customerrors.ApplicationError{
+				Code: fiber.StatusBadRequest,
+				Err:  errors.Errorf("Invalid RestaurantRecommendation Request body: %s", err.Error()),
+			}
 		}
 
+		// assign new error with return error string of validate method
 		if err := request.Validate(); err != nil {
-			return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
+			return &customerrors.ApplicationError{
+				Code: fiber.StatusBadRequest,
+				// err.Error() function gets error message
+				Err: errors.Errorf("Invalid RestaurantRecommendation Request body: %s", err.Error()),
+			}
 		}
 
 		result, err := c.restaurantRecommendationService.RequestRestaurantRecommendation(
@@ -63,7 +72,10 @@ func (c *RecommendationAPIController) requestRestaurantRecommendation() fiber.Ha
 			time.Now(),
 		)
 		if err != nil {
-			return ctx.Status(fiber.StatusInternalServerError).SendString(err.Error())
+			return &customerrors.ApplicationError{
+				Code: fiber.StatusInternalServerError,
+				Err:  errors.Errorf("RequestRestaurantRecommendation server function error :%s", err.Error()),
+			}
 		}
 
 		return ctx.JSON(&RequestRestaurantRecommendationResponse{
