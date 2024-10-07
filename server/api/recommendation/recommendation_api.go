@@ -169,12 +169,18 @@ func (c *RecommendationAPIController) getRestaurantRecommendationResult() fiber.
 	return func(ctx *fiber.Ctx) error {
 		restaurantRecommendationRequestID, err := ctx.ParamsInt("restaurantRecommendationRequestId")
 		if err != nil {
-			return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
+			return &customerrors.ApplicationError{
+				Code: fiber.StatusBadRequest,
+				Err:  errors.New("Cannot Convert restaurantRecommendationId route parameter into integer"),
+			}
 		}
 
 		result, err := c.restaurantRecommendationService.GetRestaurantRecommendationResult(int64(restaurantRecommendationRequestID))
 		if err != nil {
-			return ctx.Status(fiber.StatusInternalServerError).SendString(err.Error())
+			return &customerrors.ApplicationError{
+				Code: fiber.StatusInternalServerError,
+				Err:  errors.New("GetRestaurantRecommendationResult service function error"),
+			}
 		}
 
 		return ctx.JSON(&GetRestaurantRecommendationResultResponse{
