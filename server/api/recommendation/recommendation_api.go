@@ -104,7 +104,6 @@ func (c *RecommendationAPIController) listRecommendedRestaurants() fiber.Handler
 			}
 		}
 
-		// TODO - 해당 부분에서 왜 QueryInt를 사용하지 않는가?
 		cursorRestaurantRecommendationIDQuery := ctx.Query("cursorRestaurantRecommendationId", "")
 		var cursorRestaurantRecommendationID *int64
 		if cursorRestaurantRecommendationIDQuery != "" {
@@ -193,20 +192,32 @@ func (c *RecommendationAPIController) getRestaurantRecommendation() fiber.Handle
 	return func(ctx *fiber.Ctx) error {
 		restaurantRecommendationID, err := ctx.ParamsInt("restaurantRecommendationId")
 		if err != nil {
-			return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
+			return &customerrors.ApplicationError{
+				Code: fiber.StatusBadRequest,
+				Err:  errors.New("Cannot Convert restaurantRecommendationId route parameter into integer"),
+			}
 		}
 
 		result, err := c.restaurantRecommendationService.GetRestaurantRecommendation(int64(restaurantRecommendationID))
 		if err != nil {
 			if errors.Is(err, restaurant_repository.ErrRestaurantNotFound) {
-				return ctx.Status(fiber.StatusNotFound).SendString(err.Error())
+				return &customerrors.ApplicationError{
+					Code: fiber.StatusNotFound,
+					Err:  errors.New("Cannot found restaurant provided from restaurantRecommendationId"),
+				}
 			}
 
 			if errors.Is(err, recommendation_repository.ErrRestaurantRecommendationNotFound) {
-				return ctx.Status(fiber.StatusNotFound).SendString(err.Error())
+				return &customerrors.ApplicationError{
+					Code: fiber.StatusNotFound,
+					Err:  errors.New("Cannot found recommend restaurant list"),
+				}
 			}
 
-			return ctx.Status(fiber.StatusInternalServerError).SendString(err.Error())
+			return &customerrors.ApplicationError{
+				Code: fiber.StatusInternalServerError,
+				Err:  errors.New("GetRestaurantRecommendation service function error"),
+			}
 		}
 
 		return ctx.JSON(&GetRestaurantRecommendationResponse{
