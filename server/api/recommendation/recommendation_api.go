@@ -141,15 +141,24 @@ func (c *RecommendationAPIController) selectRestaurantRecommendations() fiber.Ha
 	return func(ctx *fiber.Ctx) error {
 		restaurantRecommendationRequestID, err := ctx.ParamsInt("restaurantRecommendationRequestId")
 		if err != nil {
-			return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
+			return &customerrors.ApplicationError{
+				Code: fiber.StatusBadRequest,
+				Err:  errors.New("Cannot Convert restaurantRecommendationId route parameter into integer"),
+			}
 		}
 		request, err := parseRequestBody[SelectRestaurantRecommendationsRequest](ctx)
 		if err != nil {
-			return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
+			return &customerrors.ApplicationError{
+				Code: fiber.StatusBadRequest,
+				Err:  errors.New("Cannot Get restaurantRecommendationIDs json body value"),
+			}
 		}
 
 		if _, err := c.restaurantRecommendationService.SelectRestaurantRecommendation(int64(restaurantRecommendationRequestID), request.RestaurantRecommendationIDs); err != nil {
-			return ctx.Status(fiber.StatusInternalServerError).SendString(err.Error())
+			return &customerrors.ApplicationError{
+				Code: fiber.StatusInternalServerError,
+				Err:  errors.New("SelectRestaurantRecommendations service function error"),
+			}
 		}
 
 		return ctx.JSON(&SelectRestaurantRecommendationsResponse{})
