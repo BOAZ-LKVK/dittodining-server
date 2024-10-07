@@ -50,7 +50,7 @@ func (c *RecommendationAPIController) requestRestaurantRecommendation() fiber.Ha
 		if err := ctx.BodyParser(request); err != nil {
 			return &customerrors.ApplicationError{
 				Code: fiber.StatusBadRequest,
-				Err:  errors.Errorf("Invalid RestaurantRecommendation Request body: %s", err.Error()),
+				Err:  errors.New("Invalid RestaurantRecommendation Request body"),
 			}
 		}
 
@@ -74,7 +74,7 @@ func (c *RecommendationAPIController) requestRestaurantRecommendation() fiber.Ha
 		if err != nil {
 			return &customerrors.ApplicationError{
 				Code: fiber.StatusInternalServerError,
-				Err:  errors.Errorf("RequestRestaurantRecommendation server function error :%s", err.Error()),
+				Err:  errors.New("RequestRestaurantRecommendation server function error"),
 			}
 		}
 
@@ -86,22 +86,35 @@ func (c *RecommendationAPIController) requestRestaurantRecommendation() fiber.Ha
 
 func (c *RecommendationAPIController) listRecommendedRestaurants() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
+		// get parameter value from restaurantRecommendationRequestId
 		restaurantRecommendationRequestID, err := ctx.ParamsInt("restaurantRecommendationRequestId")
 		if err != nil {
-			return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
+			return &customerrors.ApplicationError{
+				Code: fiber.StatusBadRequest,
+				Err:  errors.New("Cannot Convert restaurantRecommendationRequestId route parameter into integer"),
+			}
 		}
+		// get querystring value from limit, if key is existed but cannot assign value then default value set
+		// If They don't have key parameters then error value in 0
 		limit := ctx.QueryInt("limit", 10)
 		if limit == 0 {
-			return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
+			return &customerrors.ApplicationError{
+				Code: fiber.StatusBadRequest,
+				Err:  errors.New("Cannot Convert limit route parameter into integer"),
+			}
 		}
+
+		// TODO - 해당 부분에서 왜 QueryInt를 사용하지 않는가?
 		cursorRestaurantRecommendationIDQuery := ctx.Query("cursorRestaurantRecommendationId", "")
 		var cursorRestaurantRecommendationID *int64
 		if cursorRestaurantRecommendationIDQuery != "" {
 			parse, err := strconv.ParseInt(cursorRestaurantRecommendationIDQuery, 10, 64)
 			if err != nil {
-				return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
+				return &customerrors.ApplicationError{
+					Code: fiber.StatusBadRequest,
+					Err:  errors.New("Cannot Convert cursorRestaurantRecommendationId query parameter into integer"),
+				}
 			}
-
 			cursorRestaurantRecommendationID = &parse
 		}
 
@@ -111,7 +124,10 @@ func (c *RecommendationAPIController) listRecommendedRestaurants() fiber.Handler
 			lo.ToPtr(int64(limit)),
 		)
 		if err != nil {
-			return ctx.Status(fiber.StatusInternalServerError).SendString(err.Error())
+			return &customerrors.ApplicationError{
+				Code: fiber.StatusInternalServerError,
+				Err:  errors.New("ListRecommendedRestaurants service function error"),
+			}
 		}
 
 		return ctx.JSON(&ListRecommendedRestaurantsResponse{
