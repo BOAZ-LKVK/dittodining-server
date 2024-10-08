@@ -212,7 +212,7 @@ func (s *restaurantRecommendationService) SelectRestaurantRecommendation(restaur
 func (s *restaurantRecommendationService) GetRestaurantRecommendationResult(restaurantRecommendationRequestID int64) (*recommendation_model.GetRestaurantRecommendationResultResult, error) {
 	selectedRestaurantRecommendations, err := s.selectedRestaurantRecommendationRepository.FindAllByRestaurantRecommendationRequestID(restaurantRecommendationRequestID)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("Cannot found selectedRestaurantRecommendation list from restaurantRecommendationRequestID")
 	}
 
 	restaurantIDs := lo.Map(selectedRestaurantRecommendations, func(item *recommendation_domain.SelectedRestaurantRecommendation, index int) int64 {
@@ -221,7 +221,7 @@ func (s *restaurantRecommendationService) GetRestaurantRecommendationResult(rest
 
 	restaurants, err := s.restaurantRepository.FindByIDs(restaurantIDs)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("Cannot found restaurants from restaurantID list")
 	}
 	restaurantByID := lo.SliceToMap(restaurants, func(item *restaurant_domain.Restaurant) (int64, *restaurant_domain.Restaurant) {
 		return item.RestaurantID, item
@@ -229,7 +229,7 @@ func (s *restaurantRecommendationService) GetRestaurantRecommendationResult(rest
 
 	restaurantImages, err := s.restaurantImageRepository.FindAllByRestaurantIDs(restaurantIDs)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("Cannot found restaurant images from restaurantID list")
 	}
 	restaurantImagesByRestaurantID := lo.GroupBy(restaurantImages, func(item *restaurant_domain.RestaurantImage) int64 {
 		return item.RestaurantID
@@ -237,7 +237,7 @@ func (s *restaurantRecommendationService) GetRestaurantRecommendationResult(rest
 
 	menus, err := s.restaurantMenuRepository.FindAllByRestaurantIDs(restaurantIDs)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("Cannot found restaurant Menu from restaurantID list")
 	}
 	menusByRestaurantID := lo.GroupBy(menus, func(item *restaurant_domain.RestaurantMenu) int64 {
 		return item.RestaurantID
@@ -245,7 +245,7 @@ func (s *restaurantRecommendationService) GetRestaurantRecommendationResult(rest
 
 	reviews, err := s.restaurantReviewRepository.FindAllByRestaurantIDs(restaurantIDs)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("Cannot found restaurant Review from restaurantID list")
 	}
 	reviewsByRestaurantID := lo.GroupBy(reviews, func(item *restaurant_domain.RestaurantReview) int64 {
 		return item.RestaurantID
@@ -257,7 +257,7 @@ func (s *restaurantRecommendationService) GetRestaurantRecommendationResult(rest
 
 	restaurantRecommendations, err := s.restaurantRecommendationRepository.FindAllByIDs(restaurantRecommendationIDs)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("Cannot found restaurant Recommendation from restaurantRecommendationIDs list")
 	}
 
 	restaurantRecommendationByID := lo.SliceToMap(restaurantRecommendations, func(item *recommendation_domain.RestaurantRecommendation) (int64, *recommendation_domain.RestaurantRecommendation) {
@@ -280,7 +280,7 @@ func (s *restaurantRecommendationService) GetRestaurantRecommendationResult(rest
 			restaurantImageItems,
 		)
 		if err != nil {
-			return nil, err
+			return nil, errors.New("Cannot make recommended restaurant model")
 		}
 
 		results = append(results, &recommendation_model.RestaurantRecommendationResult{

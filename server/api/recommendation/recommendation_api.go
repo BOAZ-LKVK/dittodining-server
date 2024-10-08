@@ -178,7 +178,7 @@ func (c *RecommendationAPIController) getRestaurantRecommendationResult() fiber.
 		if err != nil {
 			return &customerrors.ApplicationError{
 				Code: fiber.StatusInternalServerError,
-				Err:  errors.New("GetRestaurantRecommendationResult service function error"),
+				Err:  err,
 			}
 		}
 
