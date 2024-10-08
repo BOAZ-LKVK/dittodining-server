@@ -297,32 +297,32 @@ func (s *restaurantRecommendationService) GetRestaurantRecommendationResult(rest
 func (s *restaurantRecommendationService) GetRestaurantRecommendation(restaurantRecommendationID int64) (*recommendation_model.GetRestaurantRecommendationResult, error) {
 	existingRecommendation, err := s.restaurantRecommendationRepository.FindByID(restaurantRecommendationID)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("Cannot found recommendation from restaurantRecommendationID")
 	}
 
 	restaurant, err := s.restaurantRepository.FindByID(existingRecommendation.RestaurantID)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("Cannot found restaurant from RestaurantID")
 	}
 
 	menuItems, err := s.restaurantMenuRepository.FindAllByRestaurantID(existingRecommendation.RestaurantID)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("Cannot found restaurant Menu from restaurantID list")
 	}
 
 	reviewItems, err := s.restaurantReviewRepository.FindAllByRestaurantID(existingRecommendation.RestaurantID)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("Cannot found restaurant Review from restaurantID list")
 	}
 
 	restaurantImageItems, err := s.restaurantImageRepository.FindAllByRestaurantID(existingRecommendation.RestaurantID)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("Cannot found restaurant Image from restaurantID list")
 	}
 
 	recommendedRestaurantModel, err := makeRecommendedRestaurantModel(existingRecommendation, restaurant, menuItems, reviewItems, restaurantImageItems)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("Cannot make recommended restaurant model")
 	}
 
 	return &recommendation_model.GetRestaurantRecommendationResult{
