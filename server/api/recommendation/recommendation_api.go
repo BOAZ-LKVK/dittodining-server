@@ -59,7 +59,7 @@ func (c *RecommendationAPIController) requestRestaurantRecommendation() fiber.Ha
 			return &customerrors.ApplicationError{
 				Code: fiber.StatusBadRequest,
 				// err.Error() function gets error message
-				Err: errors.Errorf("Invalid RestaurantRecommendation Request body: %s", err.Error()),
+				Err: errors.Errorf("Invalid RestaurantRecommendation Request body in requestRestaurantRecommendation: %s", err.Error()),
 			}
 		}
 
@@ -74,7 +74,7 @@ func (c *RecommendationAPIController) requestRestaurantRecommendation() fiber.Ha
 		if err != nil {
 			return &customerrors.ApplicationError{
 				Code: fiber.StatusInternalServerError,
-				Err:  err,
+				Err:  errors.Errorf("Error occurs in requestRestaurantRecommendation: %s", err),
 			}
 		}
 
@@ -125,7 +125,7 @@ func (c *RecommendationAPIController) listRecommendedRestaurants() fiber.Handler
 		if err != nil {
 			return &customerrors.ApplicationError{
 				Code: fiber.StatusInternalServerError,
-				Err:  err,
+				Err:  errors.Errorf("Error occurs in listRecommendedRestaurants: %s", err),
 			}
 		}
 
@@ -149,14 +149,14 @@ func (c *RecommendationAPIController) selectRestaurantRecommendations() fiber.Ha
 		if err != nil {
 			return &customerrors.ApplicationError{
 				Code: fiber.StatusBadRequest,
-				Err:  err,
+				Err:  errors.Errorf("Error occurs in selectRestaurantRecommendations: %s", err),
 			}
 		}
 
 		if _, err := c.restaurantRecommendationService.SelectRestaurantRecommendation(int64(restaurantRecommendationRequestID), request.RestaurantRecommendationIDs); err != nil {
 			return &customerrors.ApplicationError{
 				Code: fiber.StatusInternalServerError,
-				Err:  err,
+				Err:  errors.Errorf("Error occurs in selectRestaurantRecommendations: %s", err),
 			}
 		}
 
@@ -178,7 +178,7 @@ func (c *RecommendationAPIController) getRestaurantRecommendationResult() fiber.
 		if err != nil {
 			return &customerrors.ApplicationError{
 				Code: fiber.StatusInternalServerError,
-				Err:  err,
+				Err:  errors.Errorf("Error occurs in getRestaurantRecommendationResult: %s", err),
 			}
 		}
 
@@ -216,7 +216,7 @@ func (c *RecommendationAPIController) getRestaurantRecommendation() fiber.Handle
 
 			return &customerrors.ApplicationError{
 				Code: fiber.StatusInternalServerError,
-				Err:  err,
+				Err:  errors.Errorf("Error occurs in getRestaurantRecommendation: %s", err),
 			}
 		}
 
