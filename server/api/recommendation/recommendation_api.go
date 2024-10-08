@@ -74,7 +74,7 @@ func (c *RecommendationAPIController) requestRestaurantRecommendation() fiber.Ha
 		if err != nil {
 			return &customerrors.ApplicationError{
 				Code: fiber.StatusInternalServerError,
-				Err:  errors.New("RequestRestaurantRecommendation server function error"),
+				Err:  err,
 			}
 		}
 

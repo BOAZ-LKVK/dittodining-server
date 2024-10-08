@@ -65,10 +65,13 @@ func (s *restaurantRecommendationService) RequestRestaurantRecommendation(userID
 	)
 	created, err := s.restaurantRecommendationRequestRepository.Save(recommendationRequest)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("Cannot Save recommendationRequest to restaurantRecommendationRequestRepository")
 	}
 
 	restaurantsOrderByRecommendationScoreDesc, err := s.restaurantRepository.FindAllOrderByRecommendationScoreDesc(10)
+	if err != nil {
+		return nil, errors.New("Cannot get descend order on RecommendationScore")
+	}
 
 	recommendations := make([]*recommendation_domain.RestaurantRecommendation, 0, len(restaurantsOrderByRecommendationScoreDesc))
 	for _, r := range restaurantsOrderByRecommendationScoreDesc {
@@ -84,7 +87,7 @@ func (s *restaurantRecommendationService) RequestRestaurantRecommendation(userID
 	}
 
 	if err := s.restaurantRecommendationRepository.SaveAll(recommendations); err != nil {
-		return nil, err
+		return nil, errors.New("Cannot Save recommendations to restaurantRecommendationRepository")
 	}
 
 	return &recommendation_model.RequestRestaurantRecommendationResult{
