@@ -125,7 +125,7 @@ func (c *RecommendationAPIController) listRecommendedRestaurants() fiber.Handler
 		if err != nil {
 			return &customerrors.ApplicationError{
 				Code: fiber.StatusInternalServerError,
-				Err:  errors.New("ListRecommendedRestaurants service function error"),
+				Err:  err,
 			}
 		}
 

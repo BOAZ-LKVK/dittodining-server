@@ -102,7 +102,7 @@ func (s *restaurantRecommendationService) GetRestaurantRecommendationRequest(res
 func (s *restaurantRecommendationService) ListRecommendedRestaurants(restaurantRecommendationRequestID int64, cursorRestaurantRecommendationID *int64, limit *int64) (*recommendation_model.ListRecommendedRestaurantsResult, error) {
 	_, err := s.GetRestaurantRecommendationRequest(restaurantRecommendationRequestID)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("Cannot get RestaurantRecommendationRequest from restaurantRecommendationRequestID")
 	}
 
 	recommendations, err := s.restaurantRecommendationRepository.FindAllByRestaurantRecommendationRequestID(
@@ -111,7 +111,7 @@ func (s *restaurantRecommendationService) ListRecommendedRestaurants(restaurantR
 		limit,
 	)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("Cannot found All of recommendations from restaurantRecommendationRequestID")
 	}
 
 	// TODO: if recommendations == nil -> 추천 데이터 더 추가하도록
@@ -122,7 +122,7 @@ func (s *restaurantRecommendationService) ListRecommendedRestaurants(restaurantR
 
 	restaurants, err := s.restaurantRepository.FindByIDs(restaurantIDs)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("Cannot found restaurants from restaurantID list")
 	}
 	restaurantByID := lo.SliceToMap(restaurants, func(item *restaurant_domain.Restaurant) (int64, *restaurant_domain.Restaurant) {
 		return item.RestaurantID, item
@@ -138,14 +138,15 @@ func (s *restaurantRecommendationService) ListRecommendedRestaurants(restaurantR
 
 	menus, err := s.restaurantMenuRepository.FindAllByRestaurantIDs(restaurantIDs)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("Cannot found restaurant Menu from restaurantID list")
 	}
 	menusByRestaurantID := lo.GroupBy(menus, func(item *restaurant_domain.RestaurantMenu) int64 {
 		return item.RestaurantID
 	})
+
 	reviews, err := s.restaurantReviewRepository.FindAllByRestaurantIDs(restaurantIDs)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("Cannot found restaurant Review from restaurantID list")
 	}
 	reviewsByRestaurantID := lo.GroupBy(reviews, func(item *restaurant_domain.RestaurantReview) int64 {
 		return item.RestaurantID
@@ -160,7 +161,7 @@ func (s *restaurantRecommendationService) ListRecommendedRestaurants(restaurantR
 
 		recommendedRestaurantModel, err := makeRecommendedRestaurantModel(recommendation, restaurant, menuItems, reviewItems, restaurantImageItems)
 		if err != nil {
-			return nil, err
+			return nil, errors.New("Cannot made recommendedRestaurantModel")
 		}
 
 		recommendedRestaurants = append(recommendedRestaurants, recommendedRestaurantModel)
