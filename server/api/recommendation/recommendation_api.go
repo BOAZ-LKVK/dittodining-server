@@ -149,14 +149,14 @@ func (c *RecommendationAPIController) selectRestaurantRecommendations() fiber.Ha
 		if err != nil {
 			return &customerrors.ApplicationError{
 				Code: fiber.StatusBadRequest,
-				Err:  errors.New("Cannot Get restaurantRecommendationIDs json body value"),
+				Err:  err,
 			}
 		}
 
 		if _, err := c.restaurantRecommendationService.SelectRestaurantRecommendation(int64(restaurantRecommendationRequestID), request.RestaurantRecommendationIDs); err != nil {
 			return &customerrors.ApplicationError{
 				Code: fiber.StatusInternalServerError,
-				Err:  errors.New("SelectRestaurantRecommendations service function error"),
+				Err:  err,
 			}
 		}
 
@@ -230,12 +230,13 @@ func (c *RecommendationAPIController) getRestaurantRecommendation() fiber.Handle
 func parseRequestBody[T any](ctx *fiber.Ctx) (*T, error) {
 	request := new(T)
 	if err := ctx.BodyParser(request); err != nil {
-		return nil, err
+		return nil, errors.New("Cannot get value from request body")
 	}
 
 	if v, ok := any(request).(Validator); ok {
 		if err := v.Validate(); err != nil {
-			return nil, err
+
+			return nil, errors.New("Invalidate request body value")
 		}
 	}
 

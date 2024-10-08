@@ -182,12 +182,12 @@ func (s *restaurantRecommendationService) ListRecommendedRestaurants(restaurantR
 func (s *restaurantRecommendationService) SelectRestaurantRecommendation(restaurantRecommendationRequestID int64, restaurantRecommendationIDs []int64) (*recommendation_model.SelectRestaurantRecommendationResult, error) {
 	request, err := s.GetRestaurantRecommendationRequest(restaurantRecommendationRequestID)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("Cannot get RestaurantRecommendationRequest from restaurantRecommendationRequestID")
 	}
 
 	recommendations, err := s.restaurantRecommendationRepository.FindAllByIDs(restaurantRecommendationIDs)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("Cannot get RestaurantRecommendation from restaurantRecommendationID")
 	}
 	if len(recommendations) != len(restaurantRecommendationIDs) {
 		return nil, errors.New("not exist restaurantRecommendationId")
@@ -203,7 +203,7 @@ func (s *restaurantRecommendationService) SelectRestaurantRecommendation(restaur
 	}
 
 	if err := s.selectedRestaurantRecommendationRepository.SaveAll(selectedRestaurantRecommendations); err != nil {
-		return nil, err
+		return nil, errors.New("Cannot save selectedRestaurantRecommendation list to selectedRestaurantRecommendationRepository")
 	}
 
 	return &recommendation_model.SelectRestaurantRecommendationResult{}, nil
