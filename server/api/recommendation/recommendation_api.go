@@ -72,10 +72,7 @@ func (c *RecommendationAPIController) requestRestaurantRecommendation() fiber.Ha
 			time.Now(),
 		)
 		if err != nil {
-			return &customerrors.ApplicationError{
-				Code: fiber.StatusInternalServerError,
-				Err:  errors.Errorf("Error occurs in requestRestaurantRecommendation: %s", err),
-			}
+			return err
 		}
 
 		return ctx.JSON(&RequestRestaurantRecommendationResponse{
@@ -123,10 +120,7 @@ func (c *RecommendationAPIController) listRecommendedRestaurants() fiber.Handler
 			lo.ToPtr(int64(limit)),
 		)
 		if err != nil {
-			return &customerrors.ApplicationError{
-				Code: fiber.StatusInternalServerError,
-				Err:  errors.Errorf("Error occurs in listRecommendedRestaurants: %s", err),
-			}
+			return err
 		}
 
 		return ctx.JSON(&ListRecommendedRestaurantsResponse{
@@ -154,10 +148,7 @@ func (c *RecommendationAPIController) selectRestaurantRecommendations() fiber.Ha
 		}
 
 		if _, err := c.restaurantRecommendationService.SelectRestaurantRecommendation(int64(restaurantRecommendationRequestID), request.RestaurantRecommendationIDs); err != nil {
-			return &customerrors.ApplicationError{
-				Code: fiber.StatusInternalServerError,
-				Err:  errors.Errorf("Error occurs in selectRestaurantRecommendations: %s", err),
-			}
+			return err
 		}
 
 		return ctx.JSON(&SelectRestaurantRecommendationsResponse{})
@@ -176,10 +167,7 @@ func (c *RecommendationAPIController) getRestaurantRecommendationResult() fiber.
 
 		result, err := c.restaurantRecommendationService.GetRestaurantRecommendationResult(int64(restaurantRecommendationRequestID))
 		if err != nil {
-			return &customerrors.ApplicationError{
-				Code: fiber.StatusInternalServerError,
-				Err:  errors.Errorf("Error occurs in getRestaurantRecommendationResult: %s", err),
-			}
+			return err
 		}
 
 		return ctx.JSON(&GetRestaurantRecommendationResultResponse{
