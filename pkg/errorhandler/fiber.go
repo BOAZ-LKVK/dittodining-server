@@ -37,6 +37,11 @@ func NewFiberErrorHandler(logger *zap.Logger) fiber.ErrorHandler {
 			message = applicationError.Err.Error()
 		}
 
+		// 500 에러인 경우는 message를 보안상 노출하지 않음
+		if code == fiber.StatusInternalServerError {
+			message = "Internal Server Error"
+		}
+
 		return ctx.Status(code).JSON(ErrorResponse{
 			Code:    code,
 			Message: message,
