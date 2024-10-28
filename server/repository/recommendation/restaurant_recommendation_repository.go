@@ -46,7 +46,7 @@ func (r *restaurantRecommendationRepository) FindAllByRestaurantRecommendationRe
 				RestaurantRecommendationRequestID: restaurantRecommendationRequestID,
 			},
 			whereConditions...).
-		Order("restaurant_recommendation_request_id ASC").
+		Order("restaurant_recommendation_id DESC").
 		Limit(limitQuery).
 		Find(&recommendations)
 	if result.Error != nil {
