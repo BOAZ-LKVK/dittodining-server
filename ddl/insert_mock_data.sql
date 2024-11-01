@@ -1,3 +1,5 @@
+USE `dittodining`;
+
 INSERT INTO restaurant(restaurant_id,name,address,description,maximum_price_per_person,minimum_price_per_person,latitude,longitude,business_hours_json,recommendation_score,average_score_from_naver,total_review_count_from_naver,average_score_from_kakao,total_review_count_from_kakao,total_review_count) VALUES (1,'농민백암순대 본점','서울특별시 강남구 선릉로86길 40-4','다코숨은맛집'', ''수요미식회'', ''혼밥'', ''식사모임''',13000,10000,127.0530139,37.5037,'[
         {
             "dayOfWeek": "DAY_OF_WEEK_SUNDAY",
