@@ -32,7 +32,7 @@ func (r *restaurantRecommendationRepository) FindAllByRestaurantRecommendationRe
 
 	whereConditions := make([]interface{}, 0)
 	if cursorRestaurantRecommendationID != nil {
-		whereConditions = append(whereConditions, "restaurant_recommendation_request_id < ?", *cursorRestaurantRecommendationID)
+		whereConditions = append(whereConditions, "restaurant_recommendation_id > ?", *cursorRestaurantRecommendationID)
 	}
 
 	limitQuery := 10
@@ -46,7 +46,7 @@ func (r *restaurantRecommendationRepository) FindAllByRestaurantRecommendationRe
 				RestaurantRecommendationRequestID: restaurantRecommendationRequestID,
 			},
 			whereConditions...).
-		Order("restaurant_recommendation_id DESC").
+		Order("restaurant_recommendation_id ASC").
 		Limit(limitQuery).
 		Find(&recommendations)
 	if result.Error != nil {
