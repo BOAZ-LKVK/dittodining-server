@@ -11,17 +11,19 @@ import (
 	restaurant_model "github.com/BOAZ-LKVK/LKVK-server/server/service/restaurant/model"
 	"github.com/pkg/errors"
 	"github.com/samber/lo"
+	"golang.org/x/net/context"
+	"gorm.io/gorm"
 	"strconv"
 	"time"
 )
 
 type RestaurantRecommendationService interface {
-	RequestRestaurantRecommendation(userID *int64, userLocation recommendation_domain.UserLocation, now time.Time) (*recommendation_model.RequestRestaurantRecommendationResult, error)
-	GetRestaurantRecommendationRequest(restaurantRecommendationRequestID int64) (*recommendation_domain.RestaurantRecommendationRequest, error)
-	ListRecommendedRestaurants(restaurantRecommendationRequestID int64, cursorRestaurantRecommendationID *int64, limit *int64) (*recommendation_model.ListRecommendedRestaurantsResult, error)
-	SelectRestaurantRecommendation(restaurantRecommendationRequestID int64, restaurantRecommendationIDs []int64) (*recommendation_model.SelectRestaurantRecommendationResult, error)
-	GetRestaurantRecommendationResult(restaurantRecommendationRequestID int64) (*recommendation_model.GetRestaurantRecommendationResultResult, error)
-	GetRestaurantRecommendation(restaurantRecommendationID int64) (*recommendation_model.GetRestaurantRecommendationResult, error)
+	RequestRestaurantRecommendation(ctx context.Context, userID *int64, userLocation recommendation_domain.UserLocation, now time.Time) (*recommendation_model.RequestRestaurantRecommendationResult, error)
+	GetRestaurantRecommendationRequest(ctx context.Context, restaurantRecommendationRequestID int64) (*recommendation_domain.RestaurantRecommendationRequest, error)
+	ListRecommendedRestaurants(ctx context.Context, restaurantRecommendationRequestID int64, cursorRestaurantRecommendationID *int64, limit *int64) (*recommendation_model.ListRecommendedRestaurantsResult, error)
+	SelectRestaurantRecommendation(ctx context.Context, restaurantRecommendationRequestID int64, restaurantRecommendationIDs []int64) (*recommendation_model.SelectRestaurantRecommendationResult, error)
+	GetRestaurantRecommendationResult(ctx context.Context, restaurantRecommendationRequestID int64) (*recommendation_model.GetRestaurantRecommendationResultResult, error)
+	GetRestaurantRecommendation(ctx context.Context, restaurantRecommendationID int64) (*recommendation_model.GetRestaurantRecommendationResult, error)
 }
 
 func NewRestaurantRecommendationService(
@@ -32,6 +34,7 @@ func NewRestaurantRecommendationService(
 	restaurantMenuRepository restaurant_repository.RestaurantMenuRepository,
 	restaurantReviewRepository restaurant_repository.RestaurantReviewRepository,
 	restaurantImageRepository restaurant_repository.RestaurantImageRepository,
+	db *gorm.DB,
 ) RestaurantRecommendationService {
 	return &restaurantRecommendationService{
 		restaurantRecommendationRequestRepository:  restaurantRecommendationRequestRepository,
@@ -41,6 +44,7 @@ func NewRestaurantRecommendationService(
 		restaurantMenuRepository:                   restaurantMenuRepository,
 		restaurantReviewRepository:                 restaurantReviewRepository,
 		restaurantImageRepository:                  restaurantImageRepository,
+		db:                                         db,
 	}
 }
 
@@ -52,9 +56,10 @@ type restaurantRecommendationService struct {
 	restaurantMenuRepository                   restaurant_repository.RestaurantMenuRepository
 	restaurantReviewRepository                 restaurant_repository.RestaurantReviewRepository
 	restaurantImageRepository                  restaurant_repository.RestaurantImageRepository
+	db                                         *gorm.DB
 }
 
-func (s *restaurantRecommendationService) RequestRestaurantRecommendation(userID *int64, userLocation recommendation_domain.UserLocation, now time.Time) (*recommendation_model.RequestRestaurantRecommendationResult, error) {
+func (s *restaurantRecommendationService) RequestRestaurantRecommendation(ctx context.Context, userID *int64, userLocation recommendation_domain.UserLocation, now time.Time) (*recommendation_model.RequestRestaurantRecommendationResult, error) {
 	recommendationRequest := recommendation_domain.NewRestaurantRecommendationRequest(
 		userID,
 		recommendation_domain.NewUserLocation(
@@ -63,12 +68,12 @@ func (s *restaurantRecommendationService) RequestRestaurantRecommendation(userID
 		// TODO: testablity를 위해 clock interface 개발 후 대체
 		now,
 	)
-	created, err := s.restaurantRecommendationRequestRepository.Save(recommendationRequest)
+	created, err := s.restaurantRecommendationRequestRepository.Save(ctx, s.db, recommendationRequest)
 	if err != nil {
 		return nil, err
 	}
 
-	restaurantsOrderByRecommendationScoreDesc, err := s.restaurantRepository.FindAllOrderByRecommendationScoreDesc(10)
+	restaurantsOrderByRecommendationScoreDesc, err := s.restaurantRepository.FindAllOrderByRecommendationScoreDesc(ctx, s.db, 10)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +91,7 @@ func (s *restaurantRecommendationService) RequestRestaurantRecommendation(userID
 		)
 	}
 
-	if err := s.restaurantRecommendationRepository.SaveAll(recommendations); err != nil {
+	if err := s.restaurantRecommendationRepository.SaveAll(ctx, s.db, recommendations); err != nil {
 		return nil, err
 	}
 
@@ -95,17 +100,19 @@ func (s *restaurantRecommendationService) RequestRestaurantRecommendation(userID
 	}, nil
 }
 
-func (s *restaurantRecommendationService) GetRestaurantRecommendationRequest(restaurantRecommendationRequestID int64) (*recommendation_domain.RestaurantRecommendationRequest, error) {
-	return s.restaurantRecommendationRequestRepository.FindByID(restaurantRecommendationRequestID)
+func (s *restaurantRecommendationService) GetRestaurantRecommendationRequest(ctx context.Context, restaurantRecommendationRequestID int64) (*recommendation_domain.RestaurantRecommendationRequest, error) {
+	return s.restaurantRecommendationRequestRepository.FindByID(ctx, s.db, restaurantRecommendationRequestID)
 }
 
-func (s *restaurantRecommendationService) ListRecommendedRestaurants(restaurantRecommendationRequestID int64, cursorRestaurantRecommendationID *int64, limit *int64) (*recommendation_model.ListRecommendedRestaurantsResult, error) {
-	_, err := s.GetRestaurantRecommendationRequest(restaurantRecommendationRequestID)
+func (s *restaurantRecommendationService) ListRecommendedRestaurants(ctx context.Context, restaurantRecommendationRequestID int64, cursorRestaurantRecommendationID *int64, limit *int64) (*recommendation_model.ListRecommendedRestaurantsResult, error) {
+	_, err := s.GetRestaurantRecommendationRequest(ctx, restaurantRecommendationRequestID)
 	if err != nil {
 		return nil, err
 	}
 
 	recommendations, err := s.restaurantRecommendationRepository.FindAllByRestaurantRecommendationRequestID(
+		ctx,
+		s.db,
 		restaurantRecommendationRequestID,
 		cursorRestaurantRecommendationID,
 		limit,
@@ -120,7 +127,7 @@ func (s *restaurantRecommendationService) ListRecommendedRestaurants(restaurantR
 		return item.RestaurantID
 	})
 
-	restaurants, err := s.restaurantRepository.FindByIDs(restaurantIDs)
+	restaurants, err := s.restaurantRepository.FindByIDs(ctx, s.db, restaurantIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -128,7 +135,7 @@ func (s *restaurantRecommendationService) ListRecommendedRestaurants(restaurantR
 		return item.RestaurantID, item
 	})
 
-	restaurantImages, err := s.restaurantImageRepository.FindAllByRestaurantIDs(restaurantIDs)
+	restaurantImages, err := s.restaurantImageRepository.FindAllByRestaurantIDs(ctx, s.db, restaurantIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +143,7 @@ func (s *restaurantRecommendationService) ListRecommendedRestaurants(restaurantR
 		return item.RestaurantID
 	})
 
-	menus, err := s.restaurantMenuRepository.FindAllByRestaurantIDs(restaurantIDs)
+	menus, err := s.restaurantMenuRepository.FindAllByRestaurantIDs(ctx, s.db, restaurantIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -144,7 +151,7 @@ func (s *restaurantRecommendationService) ListRecommendedRestaurants(restaurantR
 		return item.RestaurantID
 	})
 
-	reviews, err := s.restaurantReviewRepository.FindAllByRestaurantIDs(restaurantIDs)
+	reviews, err := s.restaurantReviewRepository.FindAllByRestaurantIDs(ctx, s.db, restaurantIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -179,13 +186,13 @@ func (s *restaurantRecommendationService) ListRecommendedRestaurants(restaurantR
 	}, nil
 }
 
-func (s *restaurantRecommendationService) SelectRestaurantRecommendation(restaurantRecommendationRequestID int64, restaurantRecommendationIDs []int64) (*recommendation_model.SelectRestaurantRecommendationResult, error) {
-	request, err := s.GetRestaurantRecommendationRequest(restaurantRecommendationRequestID)
+func (s *restaurantRecommendationService) SelectRestaurantRecommendation(ctx context.Context, restaurantRecommendationRequestID int64, restaurantRecommendationIDs []int64) (*recommendation_model.SelectRestaurantRecommendationResult, error) {
+	request, err := s.GetRestaurantRecommendationRequest(ctx, restaurantRecommendationRequestID)
 	if err != nil {
 		return nil, err
 	}
 
-	recommendations, err := s.restaurantRecommendationRepository.FindAllByIDs(restaurantRecommendationIDs)
+	recommendations, err := s.restaurantRecommendationRepository.FindAllByIDs(ctx, s.db, restaurantRecommendationIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -202,15 +209,15 @@ func (s *restaurantRecommendationService) SelectRestaurantRecommendation(restaur
 		))
 	}
 
-	if err := s.selectedRestaurantRecommendationRepository.SaveAll(selectedRestaurantRecommendations); err != nil {
+	if err := s.selectedRestaurantRecommendationRepository.SaveAll(ctx, s.db, selectedRestaurantRecommendations); err != nil {
 		return nil, err
 	}
 
 	return &recommendation_model.SelectRestaurantRecommendationResult{}, nil
 }
 
-func (s *restaurantRecommendationService) GetRestaurantRecommendationResult(restaurantRecommendationRequestID int64) (*recommendation_model.GetRestaurantRecommendationResultResult, error) {
-	selectedRestaurantRecommendations, err := s.selectedRestaurantRecommendationRepository.FindAllByRestaurantRecommendationRequestID(restaurantRecommendationRequestID)
+func (s *restaurantRecommendationService) GetRestaurantRecommendationResult(ctx context.Context, restaurantRecommendationRequestID int64) (*recommendation_model.GetRestaurantRecommendationResultResult, error) {
+	selectedRestaurantRecommendations, err := s.selectedRestaurantRecommendationRepository.FindAllByRestaurantRecommendationRequestID(ctx, s.db, restaurantRecommendationRequestID)
 	if err != nil {
 		return nil, err
 	}
@@ -219,7 +226,7 @@ func (s *restaurantRecommendationService) GetRestaurantRecommendationResult(rest
 		return item.RestaurantID
 	})
 
-	restaurants, err := s.restaurantRepository.FindByIDs(restaurantIDs)
+	restaurants, err := s.restaurantRepository.FindByIDs(ctx, s.db, restaurantIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -227,7 +234,7 @@ func (s *restaurantRecommendationService) GetRestaurantRecommendationResult(rest
 		return item.RestaurantID, item
 	})
 
-	restaurantImages, err := s.restaurantImageRepository.FindAllByRestaurantIDs(restaurantIDs)
+	restaurantImages, err := s.restaurantImageRepository.FindAllByRestaurantIDs(ctx, s.db, restaurantIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -235,7 +242,7 @@ func (s *restaurantRecommendationService) GetRestaurantRecommendationResult(rest
 		return item.RestaurantID
 	})
 
-	menus, err := s.restaurantMenuRepository.FindAllByRestaurantIDs(restaurantIDs)
+	menus, err := s.restaurantMenuRepository.FindAllByRestaurantIDs(ctx, s.db, restaurantIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -243,7 +250,7 @@ func (s *restaurantRecommendationService) GetRestaurantRecommendationResult(rest
 		return item.RestaurantID
 	})
 
-	reviews, err := s.restaurantReviewRepository.FindAllByRestaurantIDs(restaurantIDs)
+	reviews, err := s.restaurantReviewRepository.FindAllByRestaurantIDs(ctx, s.db, restaurantIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -255,7 +262,7 @@ func (s *restaurantRecommendationService) GetRestaurantRecommendationResult(rest
 		return item.RestaurantRecommendationID
 	})
 
-	restaurantRecommendations, err := s.restaurantRecommendationRepository.FindAllByIDs(restaurantRecommendationIDs)
+	restaurantRecommendations, err := s.restaurantRecommendationRepository.FindAllByIDs(ctx, s.db, restaurantRecommendationIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -294,28 +301,28 @@ func (s *restaurantRecommendationService) GetRestaurantRecommendationResult(rest
 	}, nil
 }
 
-func (s *restaurantRecommendationService) GetRestaurantRecommendation(restaurantRecommendationID int64) (*recommendation_model.GetRestaurantRecommendationResult, error) {
-	existingRecommendation, err := s.restaurantRecommendationRepository.FindByID(restaurantRecommendationID)
+func (s *restaurantRecommendationService) GetRestaurantRecommendation(ctx context.Context, restaurantRecommendationID int64) (*recommendation_model.GetRestaurantRecommendationResult, error) {
+	existingRecommendation, err := s.restaurantRecommendationRepository.FindByID(ctx, s.db, restaurantRecommendationID)
 	if err != nil {
 		return nil, err
 	}
 
-	restaurant, err := s.restaurantRepository.FindByID(existingRecommendation.RestaurantID)
+	restaurant, err := s.restaurantRepository.FindByID(ctx, s.db, existingRecommendation.RestaurantID)
 	if err != nil {
 		return nil, err
 	}
 
-	menuItems, err := s.restaurantMenuRepository.FindAllByRestaurantID(existingRecommendation.RestaurantID)
+	menuItems, err := s.restaurantMenuRepository.FindAllByRestaurantID(ctx, s.db, existingRecommendation.RestaurantID)
 	if err != nil {
 		return nil, err
 	}
 
-	reviewItems, err := s.restaurantReviewRepository.FindAllByRestaurantID(existingRecommendation.RestaurantID)
+	reviewItems, err := s.restaurantReviewRepository.FindAllByRestaurantID(ctx, s.db, existingRecommendation.RestaurantID)
 	if err != nil {
 		return nil, err
 	}
 
-	restaurantImageItems, err := s.restaurantImageRepository.FindAllByRestaurantID(existingRecommendation.RestaurantID)
+	restaurantImageItems, err := s.restaurantImageRepository.FindAllByRestaurantID(ctx, s.db, existingRecommendation.RestaurantID)
 	if err != nil {
 		return nil, err
 	}

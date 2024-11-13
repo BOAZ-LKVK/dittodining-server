@@ -1,25 +1,26 @@
 package recommendation
 
 import (
+	"context"
 	recommendation_domain "github.com/BOAZ-LKVK/LKVK-server/server/domain/recommendation"
 	"gorm.io/gorm"
 )
 
 type SelectedRestaurantRecommendationRepository interface {
-	SaveAll(selectedRestaurantRecommendations []*recommendation_domain.SelectedRestaurantRecommendation) error
-	FindAllByRestaurantRecommendationRequestID(restaurantRecommendationRequestID int64) ([]*recommendation_domain.SelectedRestaurantRecommendation, error)
+	SaveAll(ctx context.Context, db *gorm.DB, selectedRestaurantRecommendations []*recommendation_domain.SelectedRestaurantRecommendation) error
+	FindAllByRestaurantRecommendationRequestID(ctx context.Context, db *gorm.DB, restaurantRecommendationRequestID int64) ([]*recommendation_domain.SelectedRestaurantRecommendation, error)
 }
 
-func NewSelectedRestaurantRecommendationRepository(db *gorm.DB) SelectedRestaurantRecommendationRepository {
-	return &selectedRestaurantRecommendationRepository{db: db}
+func NewSelectedRestaurantRecommendationRepository() SelectedRestaurantRecommendationRepository {
+	return &selectedRestaurantRecommendationRepository{}
 }
 
 type selectedRestaurantRecommendationRepository struct {
 	db *gorm.DB
 }
 
-func (r *selectedRestaurantRecommendationRepository) SaveAll(selectedRestaurantRecommendations []*recommendation_domain.SelectedRestaurantRecommendation) error {
-	result := r.db.Save(selectedRestaurantRecommendations)
+func (r *selectedRestaurantRecommendationRepository) SaveAll(ctx context.Context, db *gorm.DB, selectedRestaurantRecommendations []*recommendation_domain.SelectedRestaurantRecommendation) error {
+	result := db.Save(selectedRestaurantRecommendations)
 	if result.Error != nil {
 		return result.Error
 	}
@@ -27,9 +28,9 @@ func (r *selectedRestaurantRecommendationRepository) SaveAll(selectedRestaurantR
 	return nil
 }
 
-func (r *selectedRestaurantRecommendationRepository) FindAllByRestaurantRecommendationRequestID(restaurantRecommendationRequestID int64) ([]*recommendation_domain.SelectedRestaurantRecommendation, error) {
+func (r *selectedRestaurantRecommendationRepository) FindAllByRestaurantRecommendationRequestID(ctx context.Context, db *gorm.DB, restaurantRecommendationRequestID int64) ([]*recommendation_domain.SelectedRestaurantRecommendation, error) {
 	var selectedRestaurantRecommendations []*recommendation_domain.SelectedRestaurantRecommendation
-	result := r.db.
+	result := db.
 		Where(recommendation_domain.SelectedRestaurantRecommendation{
 			RestaurantRecommendationRequestID: restaurantRecommendationRequestID,
 		}).
