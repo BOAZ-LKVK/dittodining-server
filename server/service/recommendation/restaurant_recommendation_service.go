@@ -60,43 +60,51 @@ type restaurantRecommendationService struct {
 }
 
 func (s *restaurantRecommendationService) RequestRestaurantRecommendation(ctx context.Context, userID *int64, userLocation recommendation_domain.UserLocation, now time.Time) (*recommendation_model.RequestRestaurantRecommendationResult, error) {
-	recommendationRequest := recommendation_domain.NewRestaurantRecommendationRequest(
-		userID,
-		recommendation_domain.NewUserLocation(
-			userLocation.Latitude, userLocation.Longitude,
-		),
-		// TODO: testablity를 위해 clock interface 개발 후 대체
-		now,
-	)
-	created, err := s.restaurantRecommendationRequestRepository.Save(ctx, s.db, recommendationRequest)
-	if err != nil {
-		return nil, err
-	}
-
-	restaurantsOrderByRecommendationScoreDesc, err := s.restaurantRepository.FindAllOrderByRecommendationScoreDesc(ctx, s.db, 10)
-	if err != nil {
-		return nil, err
-	}
-
-	recommendations := make([]*recommendation_domain.RestaurantRecommendation, 0, len(restaurantsOrderByRecommendationScoreDesc))
-	for _, r := range restaurantsOrderByRecommendationScoreDesc {
-		distanceInMeters := location.CalculateDistanceInMeters(userLocation.Latitude, userLocation.Longitude, r.Latitude, r.Longitude)
-
-		recommendations = append(recommendations,
-			recommendation_domain.NewRestaurantRecommendation(
-				recommendationRequest.RestaurantRecommendationRequestID,
-				r.RestaurantID,
-				distanceInMeters,
+	var createdRecommendationRequest *recommendation_domain.RestaurantRecommendationRequest
+	if err := s.db.Transaction(func(tx *gorm.DB) error {
+		recommendationRequest := recommendation_domain.NewRestaurantRecommendationRequest(
+			userID,
+			recommendation_domain.NewUserLocation(
+				userLocation.Latitude, userLocation.Longitude,
 			),
+			// TODO: testablity를 위해 clock interface 개발 후 대체
+			now,
 		)
-	}
+		created, err := s.restaurantRecommendationRequestRepository.Save(ctx, s.db, recommendationRequest)
+		if err != nil {
+			return err
+		}
+		createdRecommendationRequest = created
 
-	if err := s.restaurantRecommendationRepository.SaveAll(ctx, s.db, recommendations); err != nil {
+		restaurantsOrderByRecommendationScoreDesc, err := s.restaurantRepository.FindAllOrderByRecommendationScoreDesc(ctx, s.db, 10)
+		if err != nil {
+			return err
+		}
+
+		recommendations := make([]*recommendation_domain.RestaurantRecommendation, 0, len(restaurantsOrderByRecommendationScoreDesc))
+		for _, r := range restaurantsOrderByRecommendationScoreDesc {
+			distanceInMeters := location.CalculateDistanceInMeters(userLocation.Latitude, userLocation.Longitude, r.Latitude, r.Longitude)
+
+			recommendations = append(recommendations,
+				recommendation_domain.NewRestaurantRecommendation(
+					recommendationRequest.RestaurantRecommendationRequestID,
+					r.RestaurantID,
+					distanceInMeters,
+				),
+			)
+		}
+
+		if err := s.restaurantRecommendationRepository.SaveAll(ctx, s.db, recommendations); err != nil {
+			return err
+		}
+
+		return nil
+	}); err != nil {
 		return nil, err
 	}
 
 	return &recommendation_model.RequestRestaurantRecommendationResult{
-		RestaurantRecommendationRequestID: created.RestaurantRecommendationRequestID,
+		RestaurantRecommendationRequestID: createdRecommendationRequest.RestaurantRecommendationRequestID,
 	}, nil
 }
 
