@@ -6,12 +6,14 @@ import (
 	"github.com/BOAZ-LKVK/LKVK-server/server/repository/restaurant"
 	restaurant_model "github.com/BOAZ-LKVK/LKVK-server/server/service/restaurant/model"
 	"github.com/pkg/errors"
+	"golang.org/x/net/context"
+	"gorm.io/gorm"
 )
 
 type RestaurantService interface {
-	GetRestaurant(restaurantID int64) (*restaurant_model.Restaurant, error)
-	ListRestaurantMenus(restaurantID int64) ([]*restaurant_model.RestaurantMenu, error)
-	GetRestaurantReview(restaurantID int64) (*restaurant_model.RestaurantReview, error)
+	GetRestaurant(ctx context.Context, restaurantID int64) (*restaurant_model.Restaurant, error)
+	ListRestaurantMenus(ctx context.Context, restaurantID int64) ([]*restaurant_model.RestaurantMenu, error)
+	GetRestaurantReview(ctx context.Context, restaurantID int64) (*restaurant_model.RestaurantReview, error)
 }
 
 func NewRestaurantService(
@@ -19,12 +21,14 @@ func NewRestaurantService(
 	restaurantMenuRepository restaurant.RestaurantMenuRepository,
 	restaurantReviewRepository restaurant.RestaurantReviewRepository,
 	restaurantImageRepository restaurant.RestaurantImageRepository,
+	db *gorm.DB,
 ) RestaurantService {
 	return &restaurantService{
 		restaurantRepository:       restaurantRepository,
 		restaurantMenuRepository:   restaurantMenuRepository,
 		restaurantReviewRepository: restaurantReviewRepository,
 		restaurantImageRepository:  restaurantImageRepository,
+		db:                         db,
 	}
 }
 
@@ -33,10 +37,11 @@ type restaurantService struct {
 	restaurantMenuRepository   restaurant.RestaurantMenuRepository
 	restaurantReviewRepository restaurant.RestaurantReviewRepository
 	restaurantImageRepository  restaurant.RestaurantImageRepository
+	db                         *gorm.DB
 }
 
-func (s *restaurantService) GetRestaurant(restaurantID int64) (*restaurant_model.Restaurant, error) {
-	r, err := s.restaurantRepository.FindByID(restaurantID)
+func (s *restaurantService) GetRestaurant(ctx context.Context, restaurantID int64) (*restaurant_model.Restaurant, error) {
+	r, err := s.restaurantRepository.FindByID(ctx, s.db, restaurantID)
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +51,7 @@ func (s *restaurantService) GetRestaurant(restaurantID int64) (*restaurant_model
 		return nil, errors.Wrap(err, "failed to unmarshal business hours")
 	}
 
-	images, err := s.restaurantImageRepository.FindAllByRestaurantID(restaurantID)
+	images, err := s.restaurantImageRepository.FindAllByRestaurantID(ctx, s.db, restaurantID)
 	if err != nil {
 		return nil, err
 	}
@@ -70,8 +75,8 @@ func (s *restaurantService) GetRestaurant(restaurantID int64) (*restaurant_model
 	}, nil
 }
 
-func (s *restaurantService) ListRestaurantMenus(restaurantID int64) ([]*restaurant_model.RestaurantMenu, error) {
-	menus, err := s.restaurantMenuRepository.FindAllByRestaurantID(restaurantID)
+func (s *restaurantService) ListRestaurantMenus(ctx context.Context, restaurantID int64) ([]*restaurant_model.RestaurantMenu, error) {
+	menus, err := s.restaurantMenuRepository.FindAllByRestaurantID(ctx, s.db, restaurantID)
 	if err != nil {
 		return nil, err
 	}
@@ -90,13 +95,13 @@ func (s *restaurantService) ListRestaurantMenus(restaurantID int64) ([]*restaura
 	return modelMenus, nil
 }
 
-func (s *restaurantService) GetRestaurantReview(restaurantID int64) (*restaurant_model.RestaurantReview, error) {
-	r, err := s.restaurantRepository.FindByID(restaurantID)
+func (s *restaurantService) GetRestaurantReview(ctx context.Context, restaurantID int64) (*restaurant_model.RestaurantReview, error) {
+	r, err := s.restaurantRepository.FindByID(ctx, s.db, restaurantID)
 	if err != nil {
 		return nil, err
 	}
 
-	reviews, err := s.restaurantReviewRepository.FindAllByRestaurantID(restaurantID)
+	reviews, err := s.restaurantReviewRepository.FindAllByRestaurantID(ctx, s.db, restaurantID)
 	if err != nil {
 		return nil, err
 	}

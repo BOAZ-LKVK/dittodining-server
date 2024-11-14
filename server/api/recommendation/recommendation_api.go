@@ -64,6 +64,7 @@ func (c *RecommendationAPIController) requestRestaurantRecommendation() fiber.Ha
 		}
 
 		result, err := c.restaurantRecommendationService.RequestRestaurantRecommendation(
+			ctx.UserContext(),
 			nil,
 			recommendation.UserLocation{
 				Latitude:  (*request).UserLocation.Latitude.Decimal,
@@ -115,6 +116,7 @@ func (c *RecommendationAPIController) listRecommendedRestaurants() fiber.Handler
 		}
 
 		listRecommendedRestaurantsResult, err := c.restaurantRecommendationService.ListRecommendedRestaurants(
+			ctx.UserContext(),
 			int64(restaurantRecommendationRequestID),
 			cursorRestaurantRecommendationID,
 			lo.ToPtr(int64(limit)),
@@ -147,7 +149,7 @@ func (c *RecommendationAPIController) selectRestaurantRecommendations() fiber.Ha
 			}
 		}
 
-		if _, err := c.restaurantRecommendationService.SelectRestaurantRecommendation(int64(restaurantRecommendationRequestID), request.RestaurantRecommendationIDs); err != nil {
+		if _, err := c.restaurantRecommendationService.SelectRestaurantRecommendation(ctx.UserContext(), int64(restaurantRecommendationRequestID), request.RestaurantRecommendationIDs); err != nil {
 			return err
 		}
 
@@ -165,7 +167,7 @@ func (c *RecommendationAPIController) getRestaurantRecommendationResult() fiber.
 			}
 		}
 
-		result, err := c.restaurantRecommendationService.GetRestaurantRecommendationResult(int64(restaurantRecommendationRequestID))
+		result, err := c.restaurantRecommendationService.GetRestaurantRecommendationResult(ctx.UserContext(), int64(restaurantRecommendationRequestID))
 		if err != nil {
 			return err
 		}
@@ -186,7 +188,7 @@ func (c *RecommendationAPIController) getRestaurantRecommendation() fiber.Handle
 			}
 		}
 
-		result, err := c.restaurantRecommendationService.GetRestaurantRecommendation(int64(restaurantRecommendationID))
+		result, err := c.restaurantRecommendationService.GetRestaurantRecommendation(ctx.UserContext(), int64(restaurantRecommendationID))
 		if err != nil {
 			if errors.Is(err, restaurant_repository.ErrRestaurantNotFound) {
 				return &customerrors.ApplicationError{

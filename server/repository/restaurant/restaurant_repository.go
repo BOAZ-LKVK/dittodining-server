@@ -1,6 +1,7 @@
 package restaurant
 
 import (
+	"context"
 	"github.com/BOAZ-LKVK/LKVK-server/server/domain/restaurant"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
@@ -9,22 +10,20 @@ import (
 var ErrRestaurantNotFound = errors.New("restaurant not found")
 
 type RestaurantRepository interface {
-	FindByID(restaurantID int64) (*restaurant.Restaurant, error)
-	FindByIDs(restaurantIDs []int64) ([]*restaurant.Restaurant, error)
-	FindAllOrderByRecommendationScoreDesc(limit int) ([]*restaurant.Restaurant, error)
+	FindByID(ctx context.Context, db *gorm.DB, restaurantID int64) (*restaurant.Restaurant, error)
+	FindByIDs(ctx context.Context, db *gorm.DB, restaurantIDs []int64) ([]*restaurant.Restaurant, error)
+	FindAllOrderByRecommendationScoreDesc(ctx context.Context, db *gorm.DB, limit int) ([]*restaurant.Restaurant, error)
 }
 
-func NewRestaurantRepository(db *gorm.DB) RestaurantRepository {
-	return &restaurantRepository{db: db}
+func NewRestaurantRepository() RestaurantRepository {
+	return &restaurantRepository{}
 }
 
-type restaurantRepository struct {
-	db *gorm.DB
-}
+type restaurantRepository struct{}
 
-func (r *restaurantRepository) FindByID(restaurantID int64) (*restaurant.Restaurant, error) {
+func (r *restaurantRepository) FindByID(ctx context.Context, db *gorm.DB, restaurantID int64) (*restaurant.Restaurant, error) {
 	var existingRestaurant *restaurant.Restaurant
-	result := r.db.
+	result := db.
 		Where(restaurant.Restaurant{
 			RestaurantID: restaurantID,
 		}).
@@ -40,9 +39,9 @@ func (r *restaurantRepository) FindByID(restaurantID int64) (*restaurant.Restaur
 	return existingRestaurant, nil
 }
 
-func (r *restaurantRepository) FindByIDs(restaurantIDs []int64) ([]*restaurant.Restaurant, error) {
+func (r *restaurantRepository) FindByIDs(ctx context.Context, db *gorm.DB, restaurantIDs []int64) ([]*restaurant.Restaurant, error) {
 	var existingRestaurants []*restaurant.Restaurant
-	result := r.db.
+	result := db.
 		Where("restaurant_id IN ?", restaurantIDs).
 		Find(&existingRestaurants)
 	if result.Error != nil {
@@ -52,9 +51,9 @@ func (r *restaurantRepository) FindByIDs(restaurantIDs []int64) ([]*restaurant.R
 	return existingRestaurants, nil
 }
 
-func (r *restaurantRepository) FindAllOrderByRecommendationScoreDesc(limit int) ([]*restaurant.Restaurant, error) {
+func (r *restaurantRepository) FindAllOrderByRecommendationScoreDesc(ctx context.Context, db *gorm.DB, limit int) ([]*restaurant.Restaurant, error) {
 	var existingRestaurants []*restaurant.Restaurant
-	result := r.db.
+	result := db.
 		Order("recommendation_score DESC").
 		Limit(limit).
 		Find(&existingRestaurants)
