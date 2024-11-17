@@ -1,0 +1,88 @@
+name: Build and Deploy Dittodining-Server to ECS
+run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
+
+# Github Actsion가 Trigger 되는 조건
+on:
+  push:
+    #Test용으로 해당 브랜치에서 바뀐 게 있으면 Deploy 하게끔 진행 
+    branches:
+    - feat/cd-pipeline-with-github-actions
+
+env:
+  # Setting an environment variable with the value of a configuration variable
+  ECR_BACKEND_IMAGE: ${{ vars.ECR_BACKEND_IMAGE }}
+  AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
+  ECS_CLUSTER: ${{ vars.ECS_CLUSTER }}
+  ECS_BACKEND_SERVICE: ${{ vars.ECS_BACKEND_SERVICE }}
+
+jobs:
+  deploy:
+    name: Deploy to ECS
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check commit status
+      id: commit-status
+      run: |
+        # Check the status of the Git commit
+        CURRENT_STATUS=$(curl --url https://api.github.com/repos/${{ github.repository }}/commits/${{ github.sha }}/status --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' | jq -r '.state');
+        echo "Current status is: $CURRENT_STATUS"
+        while [ "${CURRENT_STATUS^^}" = "PENDING" ]; 
+          do sleep 10; 
+          CURRENT_STATUS=$(curl --url https://api.github.com/repos/${{ github.repository }}/commits/${{ github.sha }}/status --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' | jq -r '.state');
+        done;
+        echo "Current status is: $CURRENT_STATUS"
+        if [ "${CURRENT_STATUS^^}" = "FAILURE" ]; 
+          then echo "Commit status failed. Canceling execution"; 
+          exit 1; 
+        fi
+        
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ap-northeast-2
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+
+    - name: Build, tag, and push image to Amazon ECR
+      id: build-image
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        ECR_REPOSITORY: dittodining
+        IMAGE_TAG: test
+      run: |
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+
+
+
+    # - name: Deploy Amazon ECS task definition
+    #   uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+    #   with:
+    #     task-definition: ${{ steps.task-def.outputs.task-definition }}
+    #     service: ecs-devops-sandbox-service
+    #     cluster: ecs-devops-sandbox-cluster
+    #     wait-for-service-stability: true
+
+    # - name: Update ECS service to use new image
+    #   run: |
+    #     ECS_CLUSTER="dittodining-production"
+    #     ECS_SERVICE="dittodining-prod-service"
+    #     TASK_DEFINITION=$(aws ecs describe-task-definition --task-definition dittodining:4)
+        
+    #     # Replace the container image with the newly pushed image
+    #     NEW_TASK_DEFINITION=$(echo $TASK_DEFINITION | jq --arg NEW_IMAGE "${{ steps.build-image.outputs.image }}" '.taskDefinition.containerDefinitions[0].image=$NEW_IMAGE')
+
+    #     # Register a new task definition with the updated image
+    #     NEW_TASK_DEFINITION_ARN=$(echo $NEW_TASK_DEFINITION | jq -r '.taskDefinition | del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities) | . | {family: .family, containerDefinitions: .containerDefinitions} | @json' | aws ecs register-task-definition --cli-input-json file:///dev/stdin | jq -r '.taskDefinition.taskDefinitionArn')
+
+    #     # Update the ECS service to use the new task definition
+    #     aws ecs update-service --cluster $ECS_CLUSTER --service $ECS_SERVICE --task-definition $NEW_TASK_DEFINITION_ARN
