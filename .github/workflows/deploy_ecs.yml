@@ -54,3 +54,4 @@ jobs:
         service: dittodining
         cluster: dittodining
         wait-for-service-stability: true
+
