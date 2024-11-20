@@ -38,11 +38,11 @@ jobs:
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
-        
-    - name: Deploy Amazon ECS task definition
-      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+
+    - name: Fill in the new image ID in the Amazon ECS task definition
+      id: task-def
+      uses: aws-actions/amazon-ecs-render-task-definition@v1
       with:
-        task-definition: ${{ steps.task-def.outputs.task-definition }}
-        service: ecs-devops-sandbox-service
-        cluster: ecs-devops-sandbox-cluster
-        wait-for-service-stability: true
+        task-definition: task-definition.json
+        container-name: dittodining
+        image: ${{ steps.build-image.outputs.image }}
