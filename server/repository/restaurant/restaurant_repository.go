@@ -77,11 +77,10 @@ func (r *restaurantRepository) FindNearbyAllOrderByRecommendationScoreDesc(
 		userLocation.Longitude.InexactFloat64(), userLocation.Latitude.InexactFloat64(),
 	)
 
-	// 쿼리 실행
 	queryBuilder := db.
 		Model(&restaurant.Restaurant{}).
 		Select("*, "+distanceExpr+" AS distance").
-		Where(distanceExpr+" <= ?", radius) // 반경 조건
+		Where(distanceExpr+" <= ?", radius)
 
 	if cursorRecommendationScore != nil {
 		queryBuilder.Where("recommendation_score < ?", cursorRecommendationScore)
