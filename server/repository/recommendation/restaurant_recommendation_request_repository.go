@@ -18,9 +18,7 @@ func NewRestaurantRecommendationRequestRepository() RestaurantRecommendationRequ
 	return &restaurantRecommendationRequestRepository{}
 }
 
-type restaurantRecommendationRequestRepository struct {
-	db *gorm.DB
-}
+type restaurantRecommendationRequestRepository struct{}
 
 func (r *restaurantRecommendationRequestRepository) Save(ctx context.Context, db *gorm.DB, request *recommendation.RestaurantRecommendationRequest) (*recommendation.RestaurantRecommendationRequest, error) {
 	result := db.Create(request)
@@ -34,7 +32,7 @@ func (r *restaurantRecommendationRequestRepository) Save(ctx context.Context, db
 func (r *restaurantRecommendationRequestRepository) FindByID(ctx context.Context, db *gorm.DB, restaurantRecommendationRequestID int64) (*recommendation.RestaurantRecommendationRequest, error) {
 	var request *recommendation.RestaurantRecommendationRequest
 
-	result := r.db.Where(recommendation.RestaurantRecommendationRequest{
+	result := db.Where(recommendation.RestaurantRecommendationRequest{
 		RestaurantRecommendationRequestID: restaurantRecommendationRequestID,
 	}).Find(&request)
 	if result.Error != nil {
