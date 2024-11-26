@@ -48,7 +48,7 @@ jobs:
         image: ${{ steps.build-image.outputs.image }}
 
     - name: Save task definition output to a file
-      run: echo "${{ steps.task-def.outputs.task-definition }}" > task-definition-updated.json
+      run: echo "${{ steps.task-def.outputs.task-definition }}" | jq . > task-definition-updated.json
     
     - name: Register Task Definition with ECS
       run: aws ecs register-task-definition --cli-input-json file://task-definition-updated.json
