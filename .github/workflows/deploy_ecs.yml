@@ -47,10 +47,19 @@ jobs:
         container-name: dittodining
         image: ${{ steps.build-image.outputs.image }}
 
+    - name: Save task definition output to a file
+      run: echo "${{ steps.task-def.outputs.task-definition }}" > task-definition-updated.json
+    
     - name: Register Task Definition with ECS
       run: |
         aws ecs register-task-definition \
-          --cli-input-json '${{ steps.task-def.outputs.task-definition }}'
+          --cli-input-json file://task-definition-updated.json
+
+
+    # - name: Register Task Definition with ECS
+    #   run: |
+    #     aws ecs register-task-definition \
+    #       --cli-input-json '${{ steps.task-def.outputs.task-definition }}'
 
     # 아래 명령어를 실행하면 ECS Cluster에 EC2 Instance에 Service로 올라가려고 함. 근데 기존 꺼랑 충돌나서 계속 Pending 인 상태만 유지
     # Task Definition을 AWS ECS에 정식으로 등록하려면 반드시 작업을 끝내고 결과를 ECS 서비스에 적용해야 합니다. 
