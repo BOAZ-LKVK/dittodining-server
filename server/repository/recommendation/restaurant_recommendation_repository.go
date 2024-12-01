@@ -11,6 +11,7 @@ var ErrRestaurantRecommendationNotFound = errors.New("restaurant recommendation 
 
 type RestaurantRecommendationRepository interface {
 	FindAllByRestaurantRecommendationRequestID(ctx context.Context, db *gorm.DB, restaurantRecommendationRequestID int64, cursorRestaurantRecommendationRequestID *int64, limit *int64) ([]*recommendation.RestaurantRecommendation, error)
+	FindLastOneByRestaurantRecommendationRequestID(ctx context.Context, db *gorm.DB, restaurantRecommendationRequestID int64) (*recommendation.RestaurantRecommendation, error)
 	FindAllByIDs(ctx context.Context, db *gorm.DB, restaurantRecommendationIDs []int64) ([]*recommendation.RestaurantRecommendation, error)
 	FindByID(ctx context.Context, db *gorm.DB, restaurantRecommendationID int64) (*recommendation.RestaurantRecommendation, error)
 	SaveAll(ctx context.Context, db *gorm.DB, recommendations []*recommendation.RestaurantRecommendation) error
@@ -108,4 +109,25 @@ func (r *restaurantRecommendationRepository) SaveAll(
 	}
 
 	return nil
+}
+
+func (r *restaurantRecommendationRepository) FindLastOneByRestaurantRecommendationRequestID(ctx context.Context, db *gorm.DB, restaurantRecommendationRequestID int64) (*recommendation.RestaurantRecommendation, error) {
+	var existingRecommendation recommendation.RestaurantRecommendation
+
+	result := db.
+		Where(&recommendation.RestaurantRecommendation{
+			RestaurantRecommendationRequestID: restaurantRecommendationRequestID,
+		}).
+		Order("restaurant_recommendation_id DESC").
+		First(&existingRecommendation)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, ErrRestaurantRecommendationNotFound
+		}
+
+		return nil, result.Error
+	}
+
+	return &existingRecommendation, nil
+
 }

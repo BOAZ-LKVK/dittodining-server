@@ -17,6 +17,8 @@ import (
 	"time"
 )
 
+const minutesToFindNearbyRestaurants = 15
+
 type RestaurantRecommendationService interface {
 	RequestRestaurantRecommendation(ctx context.Context, userID *int64, userLocation recommendation_domain.UserLocation, now time.Time) (*recommendation_model.RequestRestaurantRecommendationResult, error)
 	GetRestaurantRecommendationRequest(ctx context.Context, restaurantRecommendationRequestID int64) (*recommendation_domain.RestaurantRecommendationRequest, error)
@@ -76,25 +78,15 @@ func (s *restaurantRecommendationService) RequestRestaurantRecommendation(ctx co
 		}
 		createdRecommendationRequest = created
 
-		restaurantsOrderByRecommendationScoreDesc, err := s.restaurantRepository.FindAllOrderByRecommendationScoreDesc(ctx, s.db, 10)
-		if err != nil {
-			return err
-		}
-
-		recommendations := make([]*recommendation_domain.RestaurantRecommendation, 0, len(restaurantsOrderByRecommendationScoreDesc))
-		for _, r := range restaurantsOrderByRecommendationScoreDesc {
-			distanceInMeters := location.CalculateDistanceInMeters(userLocation.Latitude, userLocation.Longitude, r.Latitude, r.Longitude)
-
-			recommendations = append(recommendations,
-				recommendation_domain.NewRestaurantRecommendation(
-					recommendationRequest.RestaurantRecommendationRequestID,
-					r.RestaurantID,
-					distanceInMeters,
-				),
-			)
-		}
-
-		if err := s.restaurantRecommendationRepository.SaveAll(ctx, s.db, recommendations); err != nil {
+		if _, err := s.createRecommendations(
+			ctx,
+			tx,
+			userLocation,
+			recommendationRequest.RestaurantRecommendationRequestID,
+			minutesToFindNearbyRestaurants,
+			nil,
+			nil,
+		); err != nil {
 			return err
 		}
 
@@ -108,12 +100,58 @@ func (s *restaurantRecommendationService) RequestRestaurantRecommendation(ctx co
 	}, nil
 }
 
+func (s *restaurantRecommendationService) createRecommendations(
+	ctx context.Context,
+	tx *gorm.DB,
+	userLocation recommendation_domain.UserLocation,
+	restaurantRecommendationRequestID int64,
+	minutes int64,
+	cursorRecommendationScore *int64,
+	limit *int64,
+) ([]*recommendation_domain.RestaurantRecommendation, error) {
+	restaurantsOrderByRecommendationScoreDesc, err := s.restaurantRepository.FindNearbyAllOrderByRecommendationScoreDesc(
+		ctx,
+		tx,
+		userLocation,
+		minutes,
+		cursorRecommendationScore,
+		limit,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	recommendations := make([]*recommendation_domain.RestaurantRecommendation, 0, len(restaurantsOrderByRecommendationScoreDesc))
+	for _, r := range restaurantsOrderByRecommendationScoreDesc {
+		distanceInMeters := location.CalculateDistanceInMeters(userLocation.Latitude, userLocation.Longitude, r.Latitude, r.Longitude)
+
+		recommendations = append(recommendations,
+			recommendation_domain.NewRestaurantRecommendation(
+				restaurantRecommendationRequestID,
+				r.RestaurantID,
+				distanceInMeters,
+			),
+		)
+	}
+
+	if err := s.restaurantRecommendationRepository.SaveAll(ctx, s.db, recommendations); err != nil {
+		return nil, err
+	}
+
+	return recommendations, nil
+}
+
 func (s *restaurantRecommendationService) GetRestaurantRecommendationRequest(ctx context.Context, restaurantRecommendationRequestID int64) (*recommendation_domain.RestaurantRecommendationRequest, error) {
 	return s.restaurantRecommendationRequestRepository.FindByID(ctx, s.db, restaurantRecommendationRequestID)
 }
 
-func (s *restaurantRecommendationService) ListRecommendedRestaurants(ctx context.Context, restaurantRecommendationRequestID int64, cursorRestaurantRecommendationID *int64, limit *int64) (*recommendation_model.ListRecommendedRestaurantsResult, error) {
-	_, err := s.GetRestaurantRecommendationRequest(ctx, restaurantRecommendationRequestID)
+func (s *restaurantRecommendationService) ListRecommendedRestaurants(
+	ctx context.Context,
+	restaurantRecommendationRequestID int64,
+	cursorRestaurantRecommendationID *int64,
+	limit *int64,
+) (*recommendation_model.ListRecommendedRestaurantsResult, error) {
+	recommendationRequest, err := s.GetRestaurantRecommendationRequest(ctx, restaurantRecommendationRequestID)
 	if err != nil {
 		return nil, err
 	}
@@ -129,7 +167,34 @@ func (s *restaurantRecommendationService) ListRecommendedRestaurants(ctx context
 		return nil, err
 	}
 
-	// TODO: if recommendations == nil -> 추천 데이터 더 추가하도록
+	if len(recommendations) == 0 {
+		lastRecommendation, err := s.restaurantRecommendationRepository.FindLastOneByRestaurantRecommendationRequestID(
+			ctx,
+			s.db,
+			restaurantRecommendationRequestID,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		lastRecommendedRestaurant, err := s.restaurantRepository.FindByID(ctx, s.db, lastRecommendation.RestaurantID)
+		if err != nil {
+			return nil, err
+		}
+
+		recommendations, err = s.createRecommendations(
+			ctx,
+			s.db,
+			recommendationRequest.UserLocation,
+			recommendationRequest.RestaurantRecommendationRequestID,
+			minutesToFindNearbyRestaurants,
+			lo.ToPtr(lastRecommendedRestaurant.RecommendationScore.IntPart()),
+			limit,
+		)
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	restaurantIDs := lo.Map(recommendations, func(item *recommendation_domain.RestaurantRecommendation, index int) int64 {
 		return item.RestaurantID
