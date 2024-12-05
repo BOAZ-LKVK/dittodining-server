@@ -2,6 +2,7 @@ package recommendation
 
 import (
 	"context"
+	"fmt"
 	"github.com/BOAZ-LKVK/LKVK-server/server/domain/recommendation"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
@@ -34,7 +35,7 @@ func (r *restaurantRecommendationRepository) FindAllByRestaurantRecommendationRe
 
 	whereConditions := make([]interface{}, 0)
 	if cursorRestaurantRecommendationID != nil {
-		whereConditions = append(whereConditions, "restaurant_recommendation_id > ?", *cursorRestaurantRecommendationID)
+		whereConditions = append(whereConditions, fmt.Sprintf("restaurant_recommendation_id > %d", *cursorRestaurantRecommendationID))
 	}
 
 	limitQuery := 10
@@ -46,8 +47,8 @@ func (r *restaurantRecommendationRepository) FindAllByRestaurantRecommendationRe
 		Where(
 			recommendation.RestaurantRecommendation{
 				RestaurantRecommendationRequestID: restaurantRecommendationRequestID,
-			},
-			whereConditions...).
+			}).
+		Where(whereConditions).
 		Order("restaurant_recommendation_id ASC").
 		Limit(limitQuery).
 		Find(&recommendations)
@@ -103,6 +104,10 @@ func (r *restaurantRecommendationRepository) SaveAll(
 	db *gorm.DB,
 	recommendations []*recommendation.RestaurantRecommendation,
 ) error {
+	if len(recommendations) == 0 {
+		return nil
+	}
+
 	result := db.Save(recommendations)
 	if result.Error != nil {
 		return result.Error
