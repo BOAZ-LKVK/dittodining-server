@@ -4,6 +4,7 @@ import "github.com/BOAZ-LKVK/LKVK-server/server/service/recommendation/model"
 
 type RequestRestaurantRecommendationResponse struct {
 	RestaurantRecommendationRequestID int64 `json:"restaurantRecommendationRequestId"`
+	IsAvailableLocation               bool  `json:"isAvailableLocation"`
 }
 
 type ListRecommendedRestaurantsResponse struct {

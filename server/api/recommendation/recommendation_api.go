@@ -50,16 +50,14 @@ func (c *RecommendationAPIController) requestRestaurantRecommendation() fiber.Ha
 		if err := ctx.BodyParser(request); err != nil {
 			return &customerrors.ApplicationError{
 				Code: fiber.StatusBadRequest,
-				Err:  errors.New("Invalid RestaurantRecommendation Request body"),
+				Err:  err,
 			}
 		}
 
-		// assign new error with return error string of validate method
 		if err := request.Validate(); err != nil {
 			return &customerrors.ApplicationError{
 				Code: fiber.StatusBadRequest,
-				// err.Error() function gets error message
-				Err: errors.Errorf("Invalid RestaurantRecommendation Request body in requestRestaurantRecommendation: %s", err.Error()),
+				Err:  err,
 			}
 		}
 
@@ -78,6 +76,7 @@ func (c *RecommendationAPIController) requestRestaurantRecommendation() fiber.Ha
 
 		return ctx.JSON(&RequestRestaurantRecommendationResponse{
 			RestaurantRecommendationRequestID: result.RestaurantRecommendationRequestID,
+			IsAvailableLocation:               result.IsAvailableLocation,
 		})
 	}
 }
@@ -145,7 +144,7 @@ func (c *RecommendationAPIController) selectRestaurantRecommendations() fiber.Ha
 		if err != nil {
 			return &customerrors.ApplicationError{
 				Code: fiber.StatusBadRequest,
-				Err:  errors.Errorf("Error occurs in selectRestaurantRecommendations: %s", err),
+				Err:  err,
 			}
 		}
 
@@ -193,20 +192,20 @@ func (c *RecommendationAPIController) getRestaurantRecommendation() fiber.Handle
 			if errors.Is(err, restaurant_repository.ErrRestaurantNotFound) {
 				return &customerrors.ApplicationError{
 					Code: fiber.StatusNotFound,
-					Err:  errors.New("Cannot found restaurant provided from restaurantRecommendationId"),
+					Err:  err,
 				}
 			}
 
 			if errors.Is(err, recommendation_repository.ErrRestaurantRecommendationNotFound) {
 				return &customerrors.ApplicationError{
 					Code: fiber.StatusNotFound,
-					Err:  errors.New("Cannot found recommend restaurant list"),
+					Err:  err,
 				}
 			}
 
 			return &customerrors.ApplicationError{
 				Code: fiber.StatusInternalServerError,
-				Err:  errors.Errorf("Error occurs in getRestaurantRecommendation: %s", err),
+				Err:  err,
 			}
 		}
 

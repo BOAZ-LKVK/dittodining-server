@@ -63,6 +63,7 @@ type restaurantRecommendationService struct {
 
 func (s *restaurantRecommendationService) RequestRestaurantRecommendation(ctx context.Context, userID *int64, userLocation recommendation_domain.UserLocation, now time.Time) (*recommendation_model.RequestRestaurantRecommendationResult, error) {
 	var createdRecommendationRequest *recommendation_domain.RestaurantRecommendationRequest
+	var recommendations []*recommendation_domain.RestaurantRecommendation
 	if err := s.db.Transaction(func(tx *gorm.DB) error {
 		recommendationRequest := recommendation_domain.NewRestaurantRecommendationRequest(
 			userID,
@@ -78,7 +79,7 @@ func (s *restaurantRecommendationService) RequestRestaurantRecommendation(ctx co
 		}
 		createdRecommendationRequest = created
 
-		if _, err := s.createRecommendations(
+		recommendations, err = s.createRecommendations(
 			ctx,
 			tx,
 			userLocation,
@@ -86,7 +87,8 @@ func (s *restaurantRecommendationService) RequestRestaurantRecommendation(ctx co
 			minutesToFindNearbyRestaurants,
 			nil,
 			nil,
-		); err != nil {
+		)
+		if err != nil {
 			return err
 		}
 
@@ -97,6 +99,7 @@ func (s *restaurantRecommendationService) RequestRestaurantRecommendation(ctx co
 
 	return &recommendation_model.RequestRestaurantRecommendationResult{
 		RestaurantRecommendationRequestID: createdRecommendationRequest.RestaurantRecommendationRequestID,
+		IsAvailableLocation:               len(recommendations) > 0,
 	}, nil
 }
 
@@ -121,8 +124,21 @@ func (s *restaurantRecommendationService) createRecommendations(
 		return nil, err
 	}
 
+	selectedRestaurantRecommendations, err := s.selectedRestaurantRecommendationRepository.FindAllByRestaurantRecommendationRequestID(ctx, s.db, restaurantRecommendationRequestID)
+	if err != nil {
+		return nil, err
+	}
+
+	selectedRestaurantRecommendationsByRestaurantID := lo.GroupBy(selectedRestaurantRecommendations, func(item *recommendation_domain.SelectedRestaurantRecommendation) int64 {
+		return item.RestaurantID
+	})
+
 	recommendations := make([]*recommendation_domain.RestaurantRecommendation, 0, len(restaurantsOrderByRecommendationScoreDesc))
 	for _, r := range restaurantsOrderByRecommendationScoreDesc {
+		if _, ok := selectedRestaurantRecommendationsByRestaurantID[r.RestaurantID]; ok {
+			continue
+		}
+
 		distanceInMeters := location.CalculateDistanceInMeters(userLocation.Latitude, userLocation.Longitude, r.Latitude, r.Longitude)
 
 		recommendations = append(recommendations,
@@ -248,6 +264,9 @@ func (s *restaurantRecommendationService) ListRecommendedRestaurants(
 	}
 
 	var nextCursor *string
+	if cursorRestaurantRecommendationID != nil {
+		nextCursor = lo.ToPtr(strconv.FormatInt(*cursorRestaurantRecommendationID, 10))
+	}
 	if len(recommendations) > 0 {
 		last := recommendations[len(recommendations)-1]
 		nextCursor = lo.ToPtr(strconv.FormatInt(last.RestaurantRecommendationID, 10))
