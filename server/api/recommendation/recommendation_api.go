@@ -76,6 +76,7 @@ func (c *RecommendationAPIController) requestRestaurantRecommendation() fiber.Ha
 
 		return ctx.JSON(&RequestRestaurantRecommendationResponse{
 			RestaurantRecommendationRequestID: result.RestaurantRecommendationRequestID,
+			IsAvailableLocation:               result.IsAvailableLocation,
 		})
 	}
 }

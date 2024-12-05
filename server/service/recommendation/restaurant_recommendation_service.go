@@ -63,6 +63,7 @@ type restaurantRecommendationService struct {
 
 func (s *restaurantRecommendationService) RequestRestaurantRecommendation(ctx context.Context, userID *int64, userLocation recommendation_domain.UserLocation, now time.Time) (*recommendation_model.RequestRestaurantRecommendationResult, error) {
 	var createdRecommendationRequest *recommendation_domain.RestaurantRecommendationRequest
+	var recommendations []*recommendation_domain.RestaurantRecommendation
 	if err := s.db.Transaction(func(tx *gorm.DB) error {
 		recommendationRequest := recommendation_domain.NewRestaurantRecommendationRequest(
 			userID,
@@ -78,7 +79,7 @@ func (s *restaurantRecommendationService) RequestRestaurantRecommendation(ctx co
 		}
 		createdRecommendationRequest = created
 
-		if _, err := s.createRecommendations(
+		recommendations, err = s.createRecommendations(
 			ctx,
 			tx,
 			userLocation,
@@ -86,7 +87,8 @@ func (s *restaurantRecommendationService) RequestRestaurantRecommendation(ctx co
 			minutesToFindNearbyRestaurants,
 			nil,
 			nil,
-		); err != nil {
+		)
+		if err != nil {
 			return err
 		}
 
@@ -97,6 +99,7 @@ func (s *restaurantRecommendationService) RequestRestaurantRecommendation(ctx co
 
 	return &recommendation_model.RequestRestaurantRecommendationResult{
 		RestaurantRecommendationRequestID: createdRecommendationRequest.RestaurantRecommendationRequestID,
+		IsAvailableLocation:               len(recommendations) > 0,
 	}, nil
 }
 
