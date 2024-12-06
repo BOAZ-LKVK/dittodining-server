@@ -25,15 +25,11 @@ jobs:
     - name: Build and push container image
       id: docker_build
       uses: docker/build-push-action@v6
-      env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: dittodining
-        IMAGE_TAG: ${{ github.sha }}
       with:
         context: ./
         file: ./Dockerfile
         push: true
-        tags: $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        tags: ${{ steps.login-ecr.outputs.registry }}/dittodining:${{ github.sha }}
 #       private repo로 전환한다면 아래와 같이 GitHub access token이 필요
 #        build-args: |
 #          GH_ACCESS_TOKEN=${{ secrets.GH_ACCESS_TOKEN }}
