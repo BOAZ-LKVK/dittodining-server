@@ -1,29 +1,28 @@
 package restaurant
 
 import (
+	"context"
 	"github.com/BOAZ-LKVK/LKVK-server/server/domain/restaurant"
 	"gorm.io/gorm"
 )
 
 type RestaurantReviewRepository interface {
 	// TODO: limit 추가
-	FindAllByRestaurantID(restaurantID int64) ([]*restaurant.RestaurantReview, error)
+	FindAllByRestaurantID(ctx context.Context, db *gorm.DB, restaurantID int64) ([]*restaurant.RestaurantReview, error)
 	// TODO: limit 추가
-	FindAllByRestaurantIDs(restaurantIDs []int64) ([]*restaurant.RestaurantReview, error)
-	CountByRestaurantID(restaurantID int64) (int64, error)
+	FindAllByRestaurantIDs(ctx context.Context, db *gorm.DB, restaurantIDs []int64) ([]*restaurant.RestaurantReview, error)
+	CountByRestaurantID(ctx context.Context, db *gorm.DB, restaurantID int64) (int64, error)
 }
 
-func NewRestaurantReviewRepository(db *gorm.DB) RestaurantReviewRepository {
-	return &restaurantReviewRepository{db: db}
+func NewRestaurantReviewRepository() RestaurantReviewRepository {
+	return &restaurantReviewRepository{}
 }
 
-type restaurantReviewRepository struct {
-	db *gorm.DB
-}
+type restaurantReviewRepository struct{}
 
-func (r *restaurantReviewRepository) FindAllByRestaurantID(restaurantID int64) ([]*restaurant.RestaurantReview, error) {
+func (r *restaurantReviewRepository) FindAllByRestaurantID(ctx context.Context, db *gorm.DB, restaurantID int64) ([]*restaurant.RestaurantReview, error) {
 	var reviews []*restaurant.RestaurantReview
-	result := r.db.
+	result := db.
 		Where(restaurant.RestaurantReview{
 			RestaurantID: restaurantID,
 		}).
@@ -35,10 +34,10 @@ func (r *restaurantReviewRepository) FindAllByRestaurantID(restaurantID int64) (
 	return reviews, nil
 }
 
-func (r *restaurantReviewRepository) FindAllByRestaurantIDs(restaurantIDs []int64) ([]*restaurant.RestaurantReview, error) {
+func (r *restaurantReviewRepository) FindAllByRestaurantIDs(ctx context.Context, db *gorm.DB, restaurantIDs []int64) ([]*restaurant.RestaurantReview, error) {
 	var reviews []*restaurant.RestaurantReview
 
-	result := r.db.
+	result := db.
 		Where("restaurant_id IN ?", restaurantIDs).
 		Find(&reviews)
 	if result.Error != nil {
@@ -48,9 +47,9 @@ func (r *restaurantReviewRepository) FindAllByRestaurantIDs(restaurantIDs []int6
 	return reviews, nil
 }
 
-func (r *restaurantReviewRepository) CountByRestaurantID(restaurantID int64) (int64, error) {
+func (r *restaurantReviewRepository) CountByRestaurantID(ctx context.Context, db *gorm.DB, restaurantID int64) (int64, error) {
 	var count int64
-	result := r.db.
+	result := db.
 		Model(&restaurant.RestaurantReview{}).
 		Where(restaurant.RestaurantReview{
 			RestaurantID: restaurantID,

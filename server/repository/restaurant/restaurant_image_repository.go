@@ -1,28 +1,25 @@
 package restaurant
 
 import (
+	"context"
 	"github.com/BOAZ-LKVK/LKVK-server/server/domain/restaurant"
 	"gorm.io/gorm"
 )
 
 type RestaurantImageRepository interface {
-	FindAllByRestaurantID(restaurantID int64) ([]*restaurant.RestaurantImage, error)
-	FindAllByRestaurantIDs(restaurantIDs []int64) ([]*restaurant.RestaurantImage, error)
+	FindAllByRestaurantID(ctx context.Context, db *gorm.DB, restaurantID int64) ([]*restaurant.RestaurantImage, error)
+	FindAllByRestaurantIDs(ctx context.Context, db *gorm.DB, restaurantIDs []int64) ([]*restaurant.RestaurantImage, error)
 }
 
-func NewRestaurantImageRepository(db *gorm.DB) RestaurantImageRepository {
-	return &restaurantImageRepository{
-		db: db,
-	}
+func NewRestaurantImageRepository() RestaurantImageRepository {
+	return &restaurantImageRepository{}
 }
 
-type restaurantImageRepository struct {
-	db *gorm.DB
-}
+type restaurantImageRepository struct{}
 
-func (r *restaurantImageRepository) FindAllByRestaurantID(restaurantID int64) ([]*restaurant.RestaurantImage, error) {
+func (r *restaurantImageRepository) FindAllByRestaurantID(ctx context.Context, db *gorm.DB, restaurantID int64) ([]*restaurant.RestaurantImage, error) {
 	var images []*restaurant.RestaurantImage
-	result := r.db.
+	result := db.
 		Where(restaurant.RestaurantImage{
 			RestaurantID: restaurantID,
 		}).
@@ -34,9 +31,9 @@ func (r *restaurantImageRepository) FindAllByRestaurantID(restaurantID int64) ([
 	return images, nil
 }
 
-func (r *restaurantImageRepository) FindAllByRestaurantIDs(restaurantIDs []int64) ([]*restaurant.RestaurantImage, error) {
+func (r *restaurantImageRepository) FindAllByRestaurantIDs(ctx context.Context, db *gorm.DB, restaurantIDs []int64) ([]*restaurant.RestaurantImage, error) {
 	var images []*restaurant.RestaurantImage
-	result := r.db.
+	result := db.
 		Where("restaurant_id IN ?", restaurantIDs).
 		Find(&images)
 	if result.Error != nil {

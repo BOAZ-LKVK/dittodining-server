@@ -1,10 +1,12 @@
 package gormfx
 
 import (
+	"context"
 	"fmt"
 	"go.uber.org/fx"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"time"
 )
 
 type Params struct {
@@ -22,7 +24,6 @@ type Result struct {
 var Module = fx.Module("gorm",
 	fx.Provide(parseConfig),
 	fx.Provide(New),
-	fx.Invoke(connectDB),
 )
 
 func New(lc fx.Lifecycle, p Params) (Result, error) {
@@ -45,7 +46,29 @@ func New(lc fx.Lifecycle, p Params) (Result, error) {
 		return Result{}, err
 	}
 
+	lc.Append(
+		fx.Hook{
+			OnStart: func(ctx context.Context) error {
+				sqlDB, err := db.DB()
+				if err != nil {
+					return err
+				}
+
+				ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+				defer cancel()
+
+				if err := sqlDB.PingContext(ctx); err != nil {
+					return fmt.Errorf("database connection timeout: %w", err)
+				}
+
+				sqlDB.SetConnMaxLifetime(time.Duration(p.Config.ConnMaxLifetimeSeconds) * time.Second)
+				sqlDB.SetMaxIdleConns(p.Config.MaxIdleConns)
+				sqlDB.SetMaxOpenConns(p.Config.MaxOpenConns)
+
+				return nil
+			},
+		},
+	)
+
 	return Result{DB: db}, nil
 }
-
-func connectDB(db *gorm.DB) {}

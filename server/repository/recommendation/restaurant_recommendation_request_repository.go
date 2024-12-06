@@ -1,6 +1,7 @@
 package recommendation
 
 import (
+	"context"
 	"errors"
 	"github.com/BOAZ-LKVK/LKVK-server/server/domain/recommendation"
 	"gorm.io/gorm"
@@ -9,20 +10,18 @@ import (
 var ErrRestaurantRecommendationRequestNotFound = errors.New("restaurant recommendation request not found")
 
 type RestaurantRecommendationRequestRepository interface {
-	Save(request *recommendation.RestaurantRecommendationRequest) (*recommendation.RestaurantRecommendationRequest, error)
-	FindByID(restaurantRecommendationRequestID int64) (*recommendation.RestaurantRecommendationRequest, error)
+	Save(ctx context.Context, db *gorm.DB, request *recommendation.RestaurantRecommendationRequest) (*recommendation.RestaurantRecommendationRequest, error)
+	FindByID(ctx context.Context, db *gorm.DB, restaurantRecommendationRequestID int64) (*recommendation.RestaurantRecommendationRequest, error)
 }
 
-func NewRestaurantRecommendationRequestRepository(db *gorm.DB) RestaurantRecommendationRequestRepository {
-	return &restaurantRecommendationRequestRepository{db: db}
+func NewRestaurantRecommendationRequestRepository() RestaurantRecommendationRequestRepository {
+	return &restaurantRecommendationRequestRepository{}
 }
 
-type restaurantRecommendationRequestRepository struct {
-	db *gorm.DB
-}
+type restaurantRecommendationRequestRepository struct{}
 
-func (r *restaurantRecommendationRequestRepository) Save(request *recommendation.RestaurantRecommendationRequest) (*recommendation.RestaurantRecommendationRequest, error) {
-	result := r.db.Create(request)
+func (r *restaurantRecommendationRequestRepository) Save(ctx context.Context, db *gorm.DB, request *recommendation.RestaurantRecommendationRequest) (*recommendation.RestaurantRecommendationRequest, error) {
+	result := db.Create(request)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -30,10 +29,10 @@ func (r *restaurantRecommendationRequestRepository) Save(request *recommendation
 	return request, nil
 }
 
-func (r *restaurantRecommendationRequestRepository) FindByID(restaurantRecommendationRequestID int64) (*recommendation.RestaurantRecommendationRequest, error) {
+func (r *restaurantRecommendationRequestRepository) FindByID(ctx context.Context, db *gorm.DB, restaurantRecommendationRequestID int64) (*recommendation.RestaurantRecommendationRequest, error) {
 	var request *recommendation.RestaurantRecommendationRequest
 
-	result := r.db.Where(recommendation.RestaurantRecommendationRequest{
+	result := db.Where(recommendation.RestaurantRecommendationRequest{
 		RestaurantRecommendationRequestID: restaurantRecommendationRequestID,
 	}).Find(&request)
 	if result.Error != nil {

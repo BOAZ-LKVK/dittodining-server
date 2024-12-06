@@ -2,6 +2,7 @@ package recommendation
 
 import (
 	"github.com/BOAZ-LKVK/LKVK-server/pkg/apicontroller"
+	"github.com/BOAZ-LKVK/LKVK-server/pkg/customerrors"
 	"github.com/BOAZ-LKVK/LKVK-server/server/domain/recommendation"
 	recommendation_repository "github.com/BOAZ-LKVK/LKVK-server/server/repository/recommendation"
 	restaurant_repository "github.com/BOAZ-LKVK/LKVK-server/server/repository/restaurant"
@@ -47,14 +48,21 @@ func (c *RecommendationAPIController) requestRestaurantRecommendation() fiber.Ha
 	return func(ctx *fiber.Ctx) error {
 		request := new(RequestRestaurantRecommendationRequest)
 		if err := ctx.BodyParser(request); err != nil {
-			return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
+			return &customerrors.ApplicationError{
+				Code: fiber.StatusBadRequest,
+				Err:  err,
+			}
 		}
 
 		if err := request.Validate(); err != nil {
-			return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
+			return &customerrors.ApplicationError{
+				Code: fiber.StatusBadRequest,
+				Err:  err,
+			}
 		}
 
 		result, err := c.restaurantRecommendationService.RequestRestaurantRecommendation(
+			ctx.UserContext(),
 			nil,
 			recommendation.UserLocation{
 				Latitude:  (*request).UserLocation.Latitude.Decimal,
@@ -63,43 +71,57 @@ func (c *RecommendationAPIController) requestRestaurantRecommendation() fiber.Ha
 			time.Now(),
 		)
 		if err != nil {
-			return ctx.Status(fiber.StatusInternalServerError).SendString(err.Error())
+			return err
 		}
 
 		return ctx.JSON(&RequestRestaurantRecommendationResponse{
 			RestaurantRecommendationRequestID: result.RestaurantRecommendationRequestID,
+			IsAvailableLocation:               result.IsAvailableLocation,
 		})
 	}
 }
 
 func (c *RecommendationAPIController) listRecommendedRestaurants() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
+		// get parameter value from restaurantRecommendationRequestId
 		restaurantRecommendationRequestID, err := ctx.ParamsInt("restaurantRecommendationRequestId")
 		if err != nil {
-			return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
+			return &customerrors.ApplicationError{
+				Code: fiber.StatusBadRequest,
+				Err:  errors.New("Cannot Convert restaurantRecommendationRequestId route parameter into integer"),
+			}
 		}
+		// get querystring value from limit, if key is existed but cannot assign value then default value set
+		// If They don't have key parameters then error value in 0
 		limit := ctx.QueryInt("limit", 10)
 		if limit == 0 {
-			return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
+			return &customerrors.ApplicationError{
+				Code: fiber.StatusBadRequest,
+				Err:  errors.New("Cannot Convert limit route parameter into integer"),
+			}
 		}
+
 		cursorRestaurantRecommendationIDQuery := ctx.Query("cursorRestaurantRecommendationId", "")
 		var cursorRestaurantRecommendationID *int64
 		if cursorRestaurantRecommendationIDQuery != "" {
 			parse, err := strconv.ParseInt(cursorRestaurantRecommendationIDQuery, 10, 64)
 			if err != nil {
-				return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
+				return &customerrors.ApplicationError{
+					Code: fiber.StatusBadRequest,
+					Err:  errors.New("Cannot Convert cursorRestaurantRecommendationId query parameter into integer"),
+				}
 			}
-
 			cursorRestaurantRecommendationID = &parse
 		}
 
 		listRecommendedRestaurantsResult, err := c.restaurantRecommendationService.ListRecommendedRestaurants(
+			ctx.UserContext(),
 			int64(restaurantRecommendationRequestID),
 			cursorRestaurantRecommendationID,
 			lo.ToPtr(int64(limit)),
 		)
 		if err != nil {
-			return ctx.Status(fiber.StatusInternalServerError).SendString(err.Error())
+			return err
 		}
 
 		return ctx.JSON(&ListRecommendedRestaurantsResponse{
@@ -113,15 +135,21 @@ func (c *RecommendationAPIController) selectRestaurantRecommendations() fiber.Ha
 	return func(ctx *fiber.Ctx) error {
 		restaurantRecommendationRequestID, err := ctx.ParamsInt("restaurantRecommendationRequestId")
 		if err != nil {
-			return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
+			return &customerrors.ApplicationError{
+				Code: fiber.StatusBadRequest,
+				Err:  errors.New("Cannot Convert restaurantRecommendationId route parameter into integer"),
+			}
 		}
 		request, err := parseRequestBody[SelectRestaurantRecommendationsRequest](ctx)
 		if err != nil {
-			return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
+			return &customerrors.ApplicationError{
+				Code: fiber.StatusBadRequest,
+				Err:  err,
+			}
 		}
 
-		if _, err := c.restaurantRecommendationService.SelectRestaurantRecommendation(int64(restaurantRecommendationRequestID), request.RestaurantRecommendationIDs); err != nil {
-			return ctx.Status(fiber.StatusInternalServerError).SendString(err.Error())
+		if _, err := c.restaurantRecommendationService.SelectRestaurantRecommendation(ctx.UserContext(), int64(restaurantRecommendationRequestID), request.RestaurantRecommendationIDs); err != nil {
+			return err
 		}
 
 		return ctx.JSON(&SelectRestaurantRecommendationsResponse{})
@@ -132,12 +160,15 @@ func (c *RecommendationAPIController) getRestaurantRecommendationResult() fiber.
 	return func(ctx *fiber.Ctx) error {
 		restaurantRecommendationRequestID, err := ctx.ParamsInt("restaurantRecommendationRequestId")
 		if err != nil {
-			return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
+			return &customerrors.ApplicationError{
+				Code: fiber.StatusBadRequest,
+				Err:  errors.New("Cannot Convert restaurantRecommendationId route parameter into integer"),
+			}
 		}
 
-		result, err := c.restaurantRecommendationService.GetRestaurantRecommendationResult(int64(restaurantRecommendationRequestID))
+		result, err := c.restaurantRecommendationService.GetRestaurantRecommendationResult(ctx.UserContext(), int64(restaurantRecommendationRequestID))
 		if err != nil {
-			return ctx.Status(fiber.StatusInternalServerError).SendString(err.Error())
+			return err
 		}
 
 		return ctx.JSON(&GetRestaurantRecommendationResultResponse{
@@ -150,20 +181,32 @@ func (c *RecommendationAPIController) getRestaurantRecommendation() fiber.Handle
 	return func(ctx *fiber.Ctx) error {
 		restaurantRecommendationID, err := ctx.ParamsInt("restaurantRecommendationId")
 		if err != nil {
-			return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
+			return &customerrors.ApplicationError{
+				Code: fiber.StatusBadRequest,
+				Err:  errors.New("Cannot Convert restaurantRecommendationId route parameter into integer"),
+			}
 		}
 
-		result, err := c.restaurantRecommendationService.GetRestaurantRecommendation(int64(restaurantRecommendationID))
+		result, err := c.restaurantRecommendationService.GetRestaurantRecommendation(ctx.UserContext(), int64(restaurantRecommendationID))
 		if err != nil {
 			if errors.Is(err, restaurant_repository.ErrRestaurantNotFound) {
-				return ctx.Status(fiber.StatusNotFound).SendString(err.Error())
+				return &customerrors.ApplicationError{
+					Code: fiber.StatusNotFound,
+					Err:  err,
+				}
 			}
 
 			if errors.Is(err, recommendation_repository.ErrRestaurantRecommendationNotFound) {
-				return ctx.Status(fiber.StatusNotFound).SendString(err.Error())
+				return &customerrors.ApplicationError{
+					Code: fiber.StatusNotFound,
+					Err:  err,
+				}
 			}
 
-			return ctx.Status(fiber.StatusInternalServerError).SendString(err.Error())
+			return &customerrors.ApplicationError{
+				Code: fiber.StatusInternalServerError,
+				Err:  err,
+			}
 		}
 
 		return ctx.JSON(&GetRestaurantRecommendationResponse{
@@ -176,12 +219,13 @@ func (c *RecommendationAPIController) getRestaurantRecommendation() fiber.Handle
 func parseRequestBody[T any](ctx *fiber.Ctx) (*T, error) {
 	request := new(T)
 	if err := ctx.BodyParser(request); err != nil {
-		return nil, err
+		return nil, errors.New("Cannot get value from request body")
 	}
 
 	if v, ok := any(request).(Validator); ok {
 		if err := v.Validate(); err != nil {
-			return nil, err
+
+			return nil, errors.New("Invalidate request body value")
 		}
 	}
 

@@ -1,6 +1,9 @@
 package restaurant
 
 import (
+	"context"
+	"fmt"
+	recommendation_domain "github.com/BOAZ-LKVK/LKVK-server/server/domain/recommendation"
 	"github.com/BOAZ-LKVK/LKVK-server/server/domain/restaurant"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
@@ -9,22 +12,27 @@ import (
 var ErrRestaurantNotFound = errors.New("restaurant not found")
 
 type RestaurantRepository interface {
-	FindByID(restaurantID int64) (*restaurant.Restaurant, error)
-	FindByIDs(restaurantIDs []int64) ([]*restaurant.Restaurant, error)
-	FindAllOrderByRecommendationScoreDesc(limit int) ([]*restaurant.Restaurant, error)
+	FindByID(ctx context.Context, db *gorm.DB, restaurantID int64) (*restaurant.Restaurant, error)
+	FindByIDs(ctx context.Context, db *gorm.DB, restaurantIDs []int64) ([]*restaurant.Restaurant, error)
+	FindNearbyAllOrderByRecommendationScoreDesc(
+		ctx context.Context,
+		db *gorm.DB,
+		userLocation recommendation_domain.UserLocation,
+		minutes int64,
+		cursorRecommendationScore *int64,
+		limit *int64,
+	) ([]*restaurant.Restaurant, error)
 }
 
-func NewRestaurantRepository(db *gorm.DB) RestaurantRepository {
-	return &restaurantRepository{db: db}
+func NewRestaurantRepository() RestaurantRepository {
+	return &restaurantRepository{}
 }
 
-type restaurantRepository struct {
-	db *gorm.DB
-}
+type restaurantRepository struct{}
 
-func (r *restaurantRepository) FindByID(restaurantID int64) (*restaurant.Restaurant, error) {
+func (r *restaurantRepository) FindByID(ctx context.Context, db *gorm.DB, restaurantID int64) (*restaurant.Restaurant, error) {
 	var existingRestaurant *restaurant.Restaurant
-	result := r.db.
+	result := db.
 		Where(restaurant.Restaurant{
 			RestaurantID: restaurantID,
 		}).
@@ -40,9 +48,9 @@ func (r *restaurantRepository) FindByID(restaurantID int64) (*restaurant.Restaur
 	return existingRestaurant, nil
 }
 
-func (r *restaurantRepository) FindByIDs(restaurantIDs []int64) ([]*restaurant.Restaurant, error) {
+func (r *restaurantRepository) FindByIDs(ctx context.Context, db *gorm.DB, restaurantIDs []int64) ([]*restaurant.Restaurant, error) {
 	var existingRestaurants []*restaurant.Restaurant
-	result := r.db.
+	result := db.
 		Where("restaurant_id IN ?", restaurantIDs).
 		Find(&existingRestaurants)
 	if result.Error != nil {
@@ -52,11 +60,42 @@ func (r *restaurantRepository) FindByIDs(restaurantIDs []int64) ([]*restaurant.R
 	return existingRestaurants, nil
 }
 
-func (r *restaurantRepository) FindAllOrderByRecommendationScoreDesc(limit int) ([]*restaurant.Restaurant, error) {
+func (r *restaurantRepository) FindNearbyAllOrderByRecommendationScoreDesc(
+	ctx context.Context,
+	db *gorm.DB,
+	userLocation recommendation_domain.UserLocation,
+	minutes int64,
+	cursorRecommendationScore *int64,
+	limit *int64,
+) ([]*restaurant.Restaurant, error) {
+	// 이동 반경 계산 (80m/min × 시간)
+	radius := 80 * minutes
+
+	// 거리 계산 SQL 표현식
+	distanceExpr := fmt.Sprintf(
+		"ST_Distance_Sphere(POINT(longitude, latitude), POINT(%f, %f))",
+		userLocation.Longitude.InexactFloat64(), userLocation.Latitude.InexactFloat64(),
+	)
+
+	queryBuilder := db.
+		Model(&restaurant.Restaurant{}).
+		Select("*, "+distanceExpr+" AS distance").
+		Where(distanceExpr+" <= ?", radius)
+
+	if cursorRecommendationScore != nil {
+		queryBuilder.Where("recommendation_score < ?", cursorRecommendationScore)
+	}
+
+	if limit != nil {
+		queryBuilder.Limit(int(*limit))
+	} else {
+		// default limit
+		queryBuilder.Limit(10)
+	}
+
 	var existingRestaurants []*restaurant.Restaurant
-	result := r.db.
-		Order("recommendation_score DESC").
-		Limit(limit).
+	result := queryBuilder.
+		Order("recommendation_score DESC, distance ASC").
 		Find(&existingRestaurants)
 	if result.Error != nil {
 		return nil, result.Error
